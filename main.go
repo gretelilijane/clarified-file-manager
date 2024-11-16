@@ -66,23 +66,25 @@ func main() {
 		log.Println("No .env file found, using default configuration")
 	}
 
-	var port_str string = os.Getenv("PORT")
+	var port string = os.Getenv("PORT")
 	var host string = os.Getenv("HOST")
+	var db_host string = os.Getenv("DB_HOST")
+	var db_port_str string = os.Getenv("DB_PORT")
 	var db_user string = os.Getenv("DB_USER")
 	var db_password string = os.Getenv("DB_PASSWORD")
 	var db_name string = os.Getenv("DB_NAME")
 
-	port, err := strconv.Atoi(port_str)
+	db_port, err := strconv.Atoi(db_port_str)
 	if err != nil {
-		log.Fatal("Invalid port number: ", port_str)
+		log.Fatal("Invalid port number: ", db_port_str)
 		return
 	}
 
-	log.Println("Port: ", port, "Host: ", host, "DB User: ", db_user, "DB Password: ", db_password, "DB Name: ", db_name)
+	log.Println("Port: ", db_port, "Host: ", db_host, "DB User: ", db_user, "DB Password: ", db_password, "DB Name: ", db_name)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
     "password=%s dbname=%s sslmode=disable", // TODO: change sslmode
-    host, port, db_user, db_password, db_name)
+    db_host, db_port, db_user, db_password, db_name)
 
 	db, err := sql.Open("postgres", psqlInfo) // does not open the connection, only validates the args
 	if err != nil {
