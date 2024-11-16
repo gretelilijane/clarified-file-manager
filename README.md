@@ -25,15 +25,73 @@ go run main.go
 
 # Set-up potgreSQL
 
+## Install
+```sh
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+```
+
+## set-up postgres user
+```sh
+sudo -i u postgres
+psql
+``` 
+
 ## Connect with username to Postgres
 ```sh
 psql -U postgres
 ```
 
-## C
-
+### Add user password
 ```sql
+ALTER USER postgres PASSWORD 'password';
+```
 
+### Modify pg_hba.conf to allow password authentication
+```sh
+sudo nano /etc/postgresql/<version>/main/pg_hba.conf
+```
+
+Change the following line
+```sh
+local   all             postgres                                peer
+```
+to 
+
+```sh
+local   all             postgres                                md5
+```
+Restart postgres
+```sh
+sudo systemctl restart postgresql
+```
+
+Test connecting to postgres with password
+```sh
+psql -U postgres -W
+```
+
+### Create a new user, db and give user access to db
+```sql
+CREATE DATABASE new_db;
+CREATE USER username WITH PASSWORD 'securepassword';
+GRANT ALL PRIVILEGES ON DATABASE new_db TO username;
+
+\c new_db
+
+GRANT USAGE ON SCHEMA public TO username;
+GRANT CREATE ON SCHEMA public TO username;
+```
+
+### Connect to db
+```sh
+psql -U username -d new_db -W
+```
+
+### add tables to the db
+```sh
+psql -U username -d clarified_file_manager_db -W -f db/init.sql
+```
 ## Used literature
 
 ### PostgreSQL

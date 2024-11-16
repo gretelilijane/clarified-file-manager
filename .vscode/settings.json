@@ -5,9 +5,9 @@
             "server": "localhost",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "clarified_file_manager",
-            "database": "clarified_file_manager",
-            "username": "postgres"
+            "name": "clarified_file_manager_db",
+            "database": "clarified_file_manager_db",
+            "username": "grete"
         }
     ]
 }

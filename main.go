@@ -11,7 +11,6 @@ import (
 	"strconv"
 	//"encoding/json" // TODO: think if needed
 
-	// _ "github.com/mattn/go-sqlite3"
 	_ "github.com/lib/pq"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -29,36 +28,6 @@ func loadEnv() error {
 	return godotenv.Load()
 }
 
-func initDB() (error) {
-	db, err := sql.Open("sqlite3", "./files.db")
-    if err != nil {
-        return err
-    }
-    // Create table if not exists
-    query := `CREATE TABLE IF NOT EXISTS files (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        filename TEXT,
-		filesize INTEGER,
-        created_at DATETIME,
-        mime_type TEXT
-    );`
-    _, err = db.Exec(query)
-    if err != nil {
-        return err
-    }
-
-	err = db.Ping()
-	if err != nil {
-		// do something here
-		log.Fatal("No ping: ", err)
-		return  err
-	} else {
-		log.Println("Ping successful")
-	}
-
-    return nil
-}
-
 func main() {
 
 	err := loadEnv()
@@ -66,8 +35,8 @@ func main() {
 		log.Println("No .env file found, using default configuration")
 	}
 
-	var port string = os.Getenv("PORT")
-	var host string = os.Getenv("HOST")
+	var server_port string = os.Getenv("SERVER_PORT")
+	var server_host string = os.Getenv("SERVER_HOST")
 	var db_host string = os.Getenv("DB_HOST")
 	var db_port_str string = os.Getenv("DB_PORT")
 	var db_user string = os.Getenv("DB_USER")
@@ -101,19 +70,13 @@ func main() {
 
 	gRouter := mux.NewRouter()
 
-	// Initialize the database
-    // err = initDB()
-    // if err != nil {
-    //     log.Fatal("Failed to initialize database:", err)
-    // }
-    // defer db.Close()
 
 	gRouter.HandleFunc("/", Homepage)
 	gRouter.HandleFunc("/upload", UploadHandler).Methods("POST")
 
 	//http.HandleFunc("/login", loginHandler)
-	log.Println("Server started at http://" + host + ":" + port_str)
-	log.Fatal(http.ListenAndServe(host+":"+port_str, gRouter))
+	log.Println("Server started at http://" + server_host + ":" + server_port)
+	log.Fatal(http.ListenAndServe(server_host+":"+server_port, gRouter))
 }
 
 type User struct {
