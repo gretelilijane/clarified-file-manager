@@ -101,3 +101,7 @@ psql -U username -d clarified_file_manager_db -W -f db/init.sql
 
 #### Connecting to DB with GO
 - https://www.calhoun.io/connecting-to-a-postgresql-database-with-gos-database-sql-package/
+
+
+# Login with go and htmx:
+https://github.com/guillemaru/authentication-playground/tree/master

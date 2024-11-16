@@ -1,27 +1,28 @@
 package main
 
 import (
+	"clarified-file-management/handlers"
 	"database/sql"
-	"log"
-	"os"
 	"fmt"
-	"time"
+	"log"
 	"net/http"
-	"html/template"
+	"os"
 	"strconv"
+	"time"
+
 	//"encoding/json" // TODO: think if needed
 
-	_ "github.com/lib/pq"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
-var tmpl *template.Template
+// var tmpl *template.Template
 var db *sql.DB
 
 func init() {
 	log.Println("Initializing the application")
-	tmpl, _ = template.ParseGlob("views/*.html")
+	// tmpl, _ = template.ParseGlob("views/*.html")
 }
 
 func loadEnv() error {
@@ -52,8 +53,8 @@ func main() {
 	log.Println("Port: ", db_port, "Host: ", db_host, "DB User: ", db_user, "DB Password: ", db_password, "DB Name: ", db_name)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-    "password=%s dbname=%s sslmode=disable", // TODO: change sslmode
-    db_host, db_port, db_user, db_password, db_name)
+		"password=%s dbname=%s sslmode=disable", // TODO: change sslmode
+		db_host, db_port, db_user, db_password, db_name)
 
 	db, err := sql.Open("postgres", psqlInfo) // does not open the connection, only validates the args
 	if err != nil {
@@ -68,15 +69,23 @@ func main() {
 
 	fmt.Println("Successfully connected!")
 
-	gRouter := mux.NewRouter()
+	router := mux.NewRouter()
 
+	// router.HandleFunc("/", Homepage)
+	// router.HandleFunc("/upload", UploadHandler).Methods("POST")
 
-	gRouter.HandleFunc("/", Homepage)
-	gRouter.HandleFunc("/upload", UploadHandler).Methods("POST")
+	router.HandleFunc("/", handlers.IndexPageHandler()).Methods("GET", "OPTIONS")
+	router.HandleFunc("/upload", handlers.UploadPageHandler()).Methods("GET", "OPTIONS")
+	router.HandleFunc("/login", handlers.LogInPageHandler()).Methods("GET", "OPTIONS")
+	router.HandleFunc("/signup", handlers.SignUpPageHandler()).Methods("GET", "OPTIONS")
+	// router.HandleFunc("/login", logInPageHandler).Methods("POST", "OPTIONS")
+	// // router.HandleFunc("/servelogin", handleServeLoginRequest).Methods("GET")
+	// router.HandleFunc("/logout", logOutPageHandler).Methods("POST", "OPTIONS")
+	// router.HandleFunc("/signup", signUpPageHandler).Methods("POST", "OPTIONS")
 
 	//http.HandleFunc("/login", loginHandler)
 	log.Println("Server started at http://" + server_host + ":" + server_port)
-	log.Fatal(http.ListenAndServe(server_host+":"+server_port, gRouter))
+	log.Fatal(http.ListenAndServe(server_host+":"+server_port, router))
 }
 
 type User struct {
@@ -85,16 +94,16 @@ type User struct {
 }
 
 type FileMetaData struct {
-	Filename string `json:"filename"`
-	FileSize int64 `json:"filesize"`
-	MimeType string `json:"mimetype"`
+	Filename  string `json:"filename"`
+	FileSize  int64  `json:"filesize"`
+	MimeType  string `json:"mimetype"`
 	CreatedAt string `json:"createdat"`
 }
 
-func Homepage(w http.ResponseWriter, r *http.Request) {
-	log.Println("Homepage")
-	tmpl.ExecuteTemplate(w, "index.html", nil)
-}
+// func Homepage(w http.ResponseWriter, r *http.Request) {
+// 	log.Println("Homepage")
+// 	tmpl.ExecuteTemplate(w, "index.html", nil)
+// }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("UploadHandler")
@@ -102,19 +111,19 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("UploadHandler2")
 	file, handler, err := r.FormFile("avatar")
 	log.Println("UploadHandler3")
-    if err != nil {
+	if err != nil {
 		log.Println("Error Retrieving the File")
-        // http.Error(w, "Unable to retrieve file", http.StatusBadRequest)
-        return
-    }
+		// http.Error(w, "Unable to retrieve file", http.StatusBadRequest)
+		return
+	}
 	log.Println("UploadHandler4")
 	log.Println("File loaded")
 
 	// log.Println("File: ", fileHeader.Filename, fileHeader.Header.Get("Content-Type"))
 
 	filename := handler.Filename
-    filesize := handler.Size
-    fmt.Printf("MIME Header: %+v\n", handler.Header)
+	filesize := handler.Size
+	fmt.Printf("MIME Header: %+v\n", handler.Header)
 	content_type := handler.Header.Get("Content-Type")
 	createdAt := time.Now().Unix()
 
@@ -123,18 +132,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	humanReadableTime := time.Unix(createdAt, 0)
 
-    fmt.Println("Human-readable time:", humanReadableTime)
+	fmt.Println("Human-readable time:", humanReadableTime)
 
 	query := `INSERT INTO files (filename, filesize, created_at, mime_type) VALUES (?, ?, ?, ?)`
-    _, err = db.Exec(query, filename, filesize, time.Now(), content_type)
+	_, err = db.Exec(query, filename, filesize, time.Now(), content_type)
 
 	if err != nil {
-        http.Error(w, "Error saving metadata", http.StatusInternalServerError)
-        return
-    }
+		http.Error(w, "Error saving metadata", http.StatusInternalServerError)
+		return
+	}
 
-    defer file.Close()
-
+	defer file.Close()
 
 	// defer file.Close()
 	// log.Printf("Uploaded File: %+v\n", handler.Filename)
