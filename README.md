@@ -8,6 +8,11 @@ go get github.com/mattn/go-sqlite3
 go get -u github.com/gorilla/mux
 ```
 
+## Gorilla sessions
+```sh
+go get -u github.com/gorilla/sessions
+```
+
 ## Godotenv
 ```sh
 go install github.com/joho/godotenv/cmd/godotenv@latest

@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/sessions"
 )
 
 type LogInPageData struct {
@@ -16,7 +18,7 @@ type LogInPageData struct {
 	Success      bool
 }
 
-func LogInPageHandler(db *sql.DB) http.HandlerFunc {
+func LogInPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc {
 	tmpl, err := template.ParseFiles("views/base.html", "views/login.html")
 
 	if err != nil {
@@ -49,6 +51,8 @@ func LogInPageHandler(db *sql.DB) http.HandlerFunc {
 				data.ErrorMessage = "Wrong email or password"
 			}
 
+			log.Println("User: ", user, user.ID, user.Username, user.PasswordHash, user.PasswordSalt)
+
 			// Compare password
 			argon2IDHash := auth.NewArgon2idHash(1, 32, 64*1024, 32, 256)
 
@@ -59,6 +63,17 @@ func LogInPageHandler(db *sql.DB) http.HandlerFunc {
 			} else {
 				log.Println("Password is correct")
 				data.Success = true
+
+				// Set session
+				session, _ := store.Get(r, "session")
+				session.Values["user_id"] = user.ID
+				session.Values["username"] = user.Username
+
+				session.Save(r, w)
+
+				// Redirect to dashboard page if login is successful
+				w.Header().Set("HX-Redirect", "/upload")
+				w.WriteHeader(http.StatusOK)
 			}
 		}
 
@@ -70,5 +85,6 @@ func LogInPageHandler(db *sql.DB) http.HandlerFunc {
 		} else {
 			tmpl.Execute(w, data)
 		}
+
 	}
 }

@@ -1,16 +1,63 @@
 {{define "body"}}
 
 <h4>Upload File</h4>
-<form  class="form" 
+<form class="form" 
     hx-post="/upload" 
     hx-encoding="multipart/form-data"
     hx-target="#messages">
     <div class="mb-3">
-        <label for="avatarInput" class="form-label">Select Image</label>
+        <label for="avatarInput" class="form-label">Select file</label>
         <input type="file" class="form-control" id="avatarInput" name="avatar" required>
     </div>
     <button type="submit" class="btn btn-primary">Upload</button>
 </form>
 
-<div id="messages"></div> <!-- Container where server response will be injected -->
+<div id="messages">{{ template "messages" . }}</div>
+
+<h4>Uploaded Files</h4>
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>File Name</th>
+            <th>Mime Type</th>
+            <th>Size</th>
+            <th>Uploaded At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="file-list" hx-get="/upload" hx-trigger="file-uploaded from:body">
+      <!-- File rows will be dynamically loaded here -->
+      {{template "file-list" .Files}}
+    </tbody>
+</table>
 {{end}}
+
+
+{{define "file-list"}}
+{{range .}}
+<tr>
+    <td>{{.Name}}</td>
+    <td>{{.MimeType}}</td>
+    <td>{{.Size}}</td>
+    <td>{{.UploadedAt}}</td>
+    <td>
+        <a href="/files/{{.ID}}" class="btn btn-info btn-sm">Download</a>
+        <a hx-delete="/files/{{.ID}}" hx-target="closest tr" hx-swap="outerHTML" class="btn btn-danger btn-sm">Delete</a>
+    </td>
+</tr>
+{{end}}
+{{end}}
+
+{{define "messages"}}
+{{ if .ErrorMessage }}
+<div class="alert alert-danger mt-3" role="alert">
+  {{ .ErrorMessage }}
+</div>
+{{ end }}
+
+{{ if .Success }}
+<div class="alert alert-success mt-3" role="alert">
+  File has been successfully uploaded.
+</div>
+{{ end }}
+{{ end }}

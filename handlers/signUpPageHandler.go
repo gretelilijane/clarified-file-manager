@@ -46,12 +46,12 @@ func SignUpPageHandler(db *sql.DB) http.HandlerFunc {
 
 				// Check if username is already taken
 				var userExists bool = false
-				// err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", data.Username).Scan(&userExists)
+				err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", data.Username).Scan(&userExists)
 
-				// if err != nil {
-				// 	log.Println(err)
-				// 	data.ErrorMessage = "Esines tõrge, palun proovi uuesti"
-				// }
+				if err != nil {
+					log.Println(err)
+					data.ErrorMessage = "Esines tõrge, palun proovi uuesti"
+				}
 
 				if userExists {
 					data.ErrorMessage = "This username is already taken."
@@ -71,16 +71,6 @@ func SignUpPageHandler(db *sql.DB) http.HandlerFunc {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-
-			// fmt.Println(hashSalt.Hash)
-			// fmt.Println(hashSalt.Salt)
-
-			// err = argon2IDHash.Compare(hashSalt.Hash, hashSalt.Salt, []byte(data.Password))
-			// if err != nil {
-			// 	fmt.Fprintln(os.Stderr, err)
-			// 	os.Exit(1)
-			// }
-			// fmt.Println("argon2IDHash Password and Hash match")
 
 			_, err = db.Exec("INSERT INTO users (username, password_hash, password_salt) VALUES ($1, $2, $3)", data.Username, hashSalt.Hash, hashSalt.Salt)
 
