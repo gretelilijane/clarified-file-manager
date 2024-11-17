@@ -72,23 +72,25 @@ func SignUpPageHandler(db *sql.DB) http.HandlerFunc {
 				os.Exit(1)
 			}
 
-			fmt.Println(hashSalt.Hash)
-			fmt.Println(hashSalt.Salt)
+			// fmt.Println(hashSalt.Hash)
+			// fmt.Println(hashSalt.Salt)
 
-			err = argon2IDHash.Compare(hashSalt.Hash, hashSalt.Salt, []byte(data.Password))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			fmt.Println("argon2IDHash Password and Hash match")
-
-			// _, err := db.Exec("INSERT INTO users (username, password_hash, password_salt) VALUES ($1, $2, $3)", data.Username, passwordHash, passwordSalt)
-
+			// err = argon2IDHash.Compare(hashSalt.Hash, hashSalt.Salt, []byte(data.Password))
 			// if err != nil {
-			// 	log.Fatalf("Error inserting user: %v", err)
-			// 	data.ErrorMessage = "Error inserting user!"
-			// 	data.Success = false
+			// 	fmt.Fprintln(os.Stderr, err)
+			// 	os.Exit(1)
 			// }
+			// fmt.Println("argon2IDHash Password and Hash match")
+
+			_, err = db.Exec("INSERT INTO users (username, password_hash, password_salt) VALUES ($1, $2, $3)", data.Username, hashSalt.Hash, hashSalt.Salt)
+
+			if err != nil {
+				// log.Fatalf("Error inserting user: %v", err)
+				data.ErrorMessage = "Error inserting user!"
+				data.Success = false
+			} else {
+				log.Println("User created successfully")
+			}
 		}
 
 		// Render response based on request target
