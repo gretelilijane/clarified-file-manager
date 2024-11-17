@@ -18,6 +18,11 @@ go install github.com/joho/godotenv/cmd/godotenv@latest
 go get -u github.com/lib/pq
 ```
 
+## Argon2
+```sh
+go get -u golang.org/x/crypto/argon2
+```
+
 # Run
 ```sh
 go run main.go
@@ -105,3 +110,6 @@ psql -U username -d clarified_file_manager_db -W -f db/init.sql
 
 # Login with go and htmx:
 https://github.com/guillemaru/authentication-playground/tree/master
+
+# Password hashing and salting
+https://snyk.io/blog/secure-password-hashing-in-go/

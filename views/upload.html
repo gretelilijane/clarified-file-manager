@@ -1,31 +1,16 @@
 {{define "body"}}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <title>Upload File</title>
-</head>
-<body>
-    <div class="row">
-        <div class="col-md-6 p-5 mt-5">
-            <h4>Upload File</h4>
-            <form  class="form">
-                <div id="messages"></div>
-                <div class="mb-3">
-                    <label for="avatarInput" class="form-label">Select Image</label>
-                    <input type="file" class="form-control" id="avatarInput" name="avatar" required>
-                </div>
-                <button 
-                    hx-post="/upload" 
-                    hx-encoding="multipart/form-data" 
-                    hx-target="#messages"
-                    type="submit" class="btn btn-primary">Upload</button>
-            </form>
-        </div>
+
+<h4>Upload File</h4>
+<form  class="form" 
+    hx-post="/upload" 
+    hx-encoding="multipart/form-data"
+    hx-target="#messages">
+    <div class="mb-3">
+        <label for="avatarInput" class="form-label">Select Image</label>
+        <input type="file" class="form-control" id="avatarInput" name="avatar" required>
     </div>
-</body>
-</html>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+
+<div id="messages"></div> <!-- Container where server response will be injected -->
 {{end}}

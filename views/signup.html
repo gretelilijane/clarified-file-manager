@@ -1,21 +1,34 @@
 
 {{define "body"}}
-<div>
-  <form>
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input type="email" class="form-control" id="username" placeholder="Enter username">
-      <small id="emailHelp" class="form-text text-muted">We'll never share your username with anyone else.</small>
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" class="form-control" id="password" placeholder="Enter password">
-    </div>
-    <div class="form-group">
-      <label for="password-confirm">Confirm password</label>
-      <input type="password" class="form-control" id="password-confirm" placeholder="Confirm password">
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
-</div>
+<form hx-post="/signup" hx-target="#messages" hx-encoding="multipart/form-data" novalidate>
+  <div class="form-group">
+    <label for="username" class="form-label">Username</label>
+    <input type="text" class="form-control" id="username" name="username" required>
+  </div>
+  <div class="form-group">
+    <label for="password" class="form-label">Password</label>
+    <input type="password" class="form-control" id="password" name="password" required>
+  </div>
+  <div class="form-group">
+    <label for="confirm_password" class="form-label">Confirm Password</label>
+    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+  </div>
+  <button type="submit" class="btn btn-primary mt-2">Sign up</button>
+</form>
+
+<div id="messages">{{ template "messages" . }}</div>
 {{end}}
+
+{{define "messages"}}
+{{ if .ErrorMessage }}
+<div class="alert alert-danger mt-3" role="alert">
+  {{ .ErrorMessage }}
+</div>
+{{ end }}
+
+{{ if .UserCreated }}
+<div class="alert alert-success mt-3" role="alert">
+  You can now <a href="/login" hx-target="body">log in</a>.
+</div>
+{{ end }}
+{{ end }}

@@ -5,6 +5,9 @@ CREATE TABLE users (
     password_hash BYTEA NOT NULL
 );
 
+-- Create a unique index on the username column to enforce uniqueness
+CREATE UNIQUE INDEX users_username_idx ON users(LOWER(username));
+
 CREATE TABLE files (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
