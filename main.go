@@ -75,8 +75,8 @@ func main() {
 	// router.HandleFunc("/upload", UploadHandler).Methods("POST")
 
 	router.HandleFunc("/", handlers.IndexPageHandler()).Methods("GET", "OPTIONS")
-	router.HandleFunc("/upload", handlers.UploadPageHandler()).Methods("GET", "OPTIONS")
-	router.HandleFunc("/login", handlers.LogInPageHandler()).Methods("GET", "OPTIONS")
+	router.HandleFunc("/upload", handlers.UploadPageHandler()).Methods("GET")
+	router.HandleFunc("/login", handlers.LogInPageHandler(db)).Methods("GET", "POST")
 	router.HandleFunc("/signup", handlers.SignUpPageHandler(db)).Methods("GET", "POST")
 	// router.HandleFunc("/sign-up", handlers.SignUpHandler()).Methods("POST", "OPTIONS")
 	// router.HandleFunc("/login", logInPageHandler).Methods("POST", "OPTIONS")
