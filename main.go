@@ -79,6 +79,7 @@ func main() {
 
 	router.HandleFunc("/login", handlers.LogInPageHandler(db, store)).Methods("GET", "POST")
 	router.HandleFunc("/signup", handlers.SignUpPageHandler(db)).Methods("GET", "POST")
+	router.HandleFunc("/logout", handlers.LogOutHandler(store))
 	router.HandleFunc("/files", handlers.FilesPageHandler(db, store)).Methods("GET")
 	router.HandleFunc("/files", handlers.UploadHandler(db, store)).Methods("POST")
 	router.HandleFunc("/files/{id}", handlers.DeleteFileHandler(db, store)).Methods("DELETE")
