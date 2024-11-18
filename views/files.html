@@ -1,7 +1,7 @@
 {{define "navbar"}}
 <ul class="navbar-nav mb-1 mb-lg-0 d-flex">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
+      <a class="nav-link active" aria-current="page" href="/logout">Log out</a>
     </li>
 </ul>
 {{end}}
@@ -13,21 +13,25 @@
 {{ template "upload-form" . }}
 
 <h4 class="mt-3">Uploaded Files</h4>
-<table class="table table-striped mt-3">
-    <thead>
-        <tr>
-            <th>File Name </th>
-            <th>Mime Type</th>
-            <th>Size</th>
-            <th>Uploaded At <i class="fa-solid fa-sort-up"></i></th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody id="file-list" hx-get="/files" hx-trigger="file-uploaded from:body">
-      <!-- File rows will be dynamically loaded here -->
-      {{template "file-list" .Files}}
-    </tbody>
+<table id="files-table" class="table table-striped mt-3">
+    {{ template "files-table" . }}
 </table>
+{{end}}
+
+{{define "files-table"}}
+<thead>
+    <tr>
+        <th>File Name </th>
+        <th>Mime Type</th>
+        <th><a hx-target="#files-table" hx-get="/files?sort=size" hx-push-url="true">Size</a></th>
+        <th>Uploaded At <i class="fa-solid fa-sort-up"></i></th>
+        <th>Actions</th>
+    </tr>
+</thead>
+<tbody id="file-list" hx-get="/files" hx-trigger="file-uploaded from:body">
+  <!-- File rows will be dynamically loaded here -->
+  {{template "file-list" .Files}}
+</tbody>
 {{end}}
 
 {{define "file-list"}}

@@ -101,7 +101,7 @@ func FilesPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 
 		log.Println("Target: ", target)
 
-		if target == "messages" {
+		if target == "messages" || target == "files-table" {
 			tmpl.ExecuteTemplate(w, target, data)
 		} else if target == "file-list" {
 			tmpl.ExecuteTemplate(w, target, data.Files)

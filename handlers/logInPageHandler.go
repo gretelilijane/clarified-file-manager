@@ -51,8 +51,6 @@ func LogInPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 				data.ErrorMessage = "Wrong email or password"
 			}
 
-			log.Println("User: ", user, user.ID, user.Username, user.PasswordHash, user.PasswordSalt)
-
 			// Compare password
 			argon2IDHash := auth.NewArgon2idHash(1, 32, 64*1024, 32, 256)
 
