@@ -72,7 +72,7 @@ func LogInPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 				session.Save(r, w)
 
 				// Redirect to dashboard page if login is successful
-				w.Header().Set("HX-Redirect", "/upload")
+				w.Header().Set("HX-Redirect", "/files")
 				w.WriteHeader(http.StatusOK)
 			}
 		}

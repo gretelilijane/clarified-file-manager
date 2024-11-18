@@ -16,11 +16,6 @@ import (
 // }
 
 func DeleteFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc {
-	// tmpl, err := template.ParseFiles("views/base.html", "views/login.html")
-
-	// if err != nil {
-	// 	log.Fatalf("Error parsing template: %v", err)
-	// }
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -39,7 +34,7 @@ func DeleteFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc
 
 		log.Println("File ID: ", fileID)
 
-		userId = 1
+		// userId = 1
 
 		// delete file with userId and fileID
 		res, err := db.Exec("DELETE FROM files WHERE id = $1 AND user_id = $2", fileID, userId)

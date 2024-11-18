@@ -30,7 +30,7 @@ func DownloadFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFu
 
 		// Parse the file ID from the URL
 		fileID := r.URL.Path[len("/files/"):len(r.URL.Path)]
-		userId = 1
+		// userId = 1
 
 		// Same steps as before to fetch file metadata (name, mime_type)
 		var fileName, mimeType string
@@ -39,6 +39,8 @@ func DownloadFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFu
 		if err != nil {
 			// Handle errors as before
 			log.Println("Not possible", err)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 
 		// Stream file content
@@ -47,6 +49,8 @@ func DownloadFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFu
 		if err != nil {
 			// Handle errors as before
 			log.Println("Not possible", err)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 		defer rows.Close()
 

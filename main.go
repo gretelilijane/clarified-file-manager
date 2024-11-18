@@ -75,12 +75,17 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", handlers.IndexPageHandler()).Methods("GET", "OPTIONS")
-	router.HandleFunc("/upload", handlers.UploadPageHandler(db, store)).Methods("GET", "POST")
+	router.HandleFunc("/", handlers.IndexPageHandler(store)).Methods("GET", "OPTIONS")
+
 	router.HandleFunc("/login", handlers.LogInPageHandler(db, store)).Methods("GET", "POST")
 	router.HandleFunc("/signup", handlers.SignUpPageHandler(db)).Methods("GET", "POST")
+	router.HandleFunc("/files", handlers.FilesPageHandler(db, store)).Methods("GET")
+	router.HandleFunc("/files", handlers.UploadHandler(db, store)).Methods("POST")
 	router.HandleFunc("/files/{id}", handlers.DeleteFileHandler(db, store)).Methods("DELETE")
 	router.HandleFunc("/files/{id}", handlers.DownloadFileHandler(db, store)).Methods("GET")
+
+	// styles
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Println("Server started at http://" + server_host + ":" + server_port)
 	log.Fatal(http.ListenAndServe(server_host+":"+server_port, router))

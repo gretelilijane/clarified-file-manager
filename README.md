@@ -102,6 +102,13 @@ psql -U username -d new_db -W
 ```sh
 psql -U username -d clarified_file_manager_db -W -f db/init.sql
 ```
+
+## Dev
+
+### Nodemon
+```sh
+nodemon --exec "go run main.go" --signal SIGTERM -e go,env,html
+`
 ## Used literature
 
 ### PostgreSQL

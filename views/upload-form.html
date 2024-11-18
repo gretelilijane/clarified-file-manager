@@ -1,0 +1,29 @@
+{{define "upload-form"}}
+<form
+    id="upload-form"
+    class="form" 
+    hx-post="/files" 
+    hx-encoding="multipart/form-data"
+    hx-target="#upload-form"
+    hx-swap="outerHTML"
+    novalidate
+>
+    <div class="mb-3">
+        <label for="fileInput" class="form-label">Select file</label>
+        <input type="file" class="form-control" id="fileInput" name="file" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+
+    {{ if .ErrorMessage }}
+    <div class="alert alert-danger mt-3" role="alert">
+        {{ .ErrorMessage }}
+    </div>
+    {{ end }}
+
+    {{ if .Success }}
+    <div class="alert alert-success mt-3" role="alert">
+        File has been successfully uploaded.
+    </div>
+    {{ end }}
+</form>
+{{end}}
