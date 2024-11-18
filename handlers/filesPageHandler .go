@@ -3,6 +3,7 @@ package handlers
 import (
 	"clarified-file-management/types"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -15,11 +16,19 @@ type FilesPageData struct {
 	ErrorMessage string
 	Success      bool
 	Files        []types.File
+	Sort         types.FileSortableColumn
+	Direction    types.SortDirection
 }
 
-func getUserFiles(db *sql.DB, userID int32) ([]types.File, error) {
+func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn, sortDirection types.SortDirection) ([]types.File, error) {
 	var files []types.File
-	rows, err := db.Query("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY uploaded_at DESC", userID)
+	//         query := fmt.Sprintf("SELECT id, name, age, created_at FROM users ORDER BY %s %s", sortColumn, sortOrder)
+	// query := fmt.Sprintf("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY $2 $3", userID, sort, desc)
+
+	// Construct the query safely
+	query := fmt.Sprintf("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY %s %s", sortColumn, sortDirection)
+	rows, err := db.Query(query, userID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -59,10 +68,25 @@ func FilesPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 			Success:      false,
 			Files:        nil,
 			ErrorMessage: "",
+			Sort:         "uploaded_at",
+			Direction:    "desc",
 		}
 
 		if r.Method == http.MethodGet {
-			files, err := getUserFiles(db, userId)
+			query := r.URL.Query()
+
+			// Get sort and direction from query params
+			if query.Has("sort") {
+				data.Sort = types.FileSortableColumnFromString(query.Get("sort"))
+			}
+
+			if query.Has("dir") {
+				data.Direction = types.SortDirectionFromString(query.Get("dir"))
+			}
+
+			log.Println("Sort: ", data.Sort, "Direction: ", data.Direction)
+
+			files, err := getUserFiles(db, userId, data.Sort, data.Direction)
 			if err != nil {
 				http.Error(w, "Failed to retrieve files", http.StatusInternalServerError)
 				data.ErrorMessage = "Failed to retrieve files"
