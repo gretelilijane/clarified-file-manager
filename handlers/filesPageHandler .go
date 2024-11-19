@@ -28,15 +28,20 @@ func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn,
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
 		var file types.File
-		if err := rows.Scan(&file.ID, &file.Name, &file.MimeType, &file.Size, &file.UploadedAt); err != nil {
+		err := rows.Scan(&file.ID, &file.Name, &file.MimeType, &file.Size, &file.UploadedAt)
+
+		if err != nil {
 			return nil, err
 		}
+
 		files = append(files, file)
 	}
+
 	return files, nil
 }
 
@@ -142,10 +147,8 @@ func FilesPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 		// Render response based on request target
 		target := r.Header.Get("HX-Target")
 
-		if target == "messages" || target == "files-table" {
+		if target == "messages" || target == "files-table" || target == "files-list" {
 			tmpl.ExecuteTemplate(w, target, data)
-		} else if target == "file-list" {
-			tmpl.ExecuteTemplate(w, target, data.Files)
 		} else {
 			tmpl.Execute(w, data)
 		}

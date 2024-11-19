@@ -19,6 +19,7 @@ CREATE TABLE files (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE INDEX files_user_id_idx ON files(user_id);
 CREATE INDEX files_uploaded_at_idx ON files(uploaded_at);
 CREATE INDEX files_size_idx ON files(size);
 CREATE INDEX mime_type_idx ON files(mime_type);

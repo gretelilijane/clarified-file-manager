@@ -34,14 +34,13 @@
         {{end}}
     </tr>
 </thead>
-<tbody id="file-list" hx-get="/files" hx-trigger="file-uploaded from:body">
-  <!-- File rows will be dynamically loaded here -->
-  {{template "file-list" .Files}}
+<tbody id="files-list" hx-get="/files?sort={{.Sort}}&dir={{.Direction}}" hx-trigger="file-uploaded from:body">
+  {{template "files-list" .}}
 </tbody>
 {{end}}
 
-{{define "file-list"}}
-{{range .}}
+{{define "files-list"}}
+{{range .Files}}
 <tr>
     <td>{{.Name}}</td>
     <td>{{.MimeType}}</td>

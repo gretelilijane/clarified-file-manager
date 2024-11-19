@@ -37,10 +37,7 @@ func main() {
 	db_port, err := strconv.Atoi(db_port_str)
 	if err != nil {
 		log.Fatal("Invalid port number: ", db_port_str)
-		return
 	}
-
-	log.Println("Port: ", db_port, "Host: ", db_host, "DB User: ", db_user, "DB Password: ", db_password, "DB Name: ", db_name)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable", // TODO: change sslmode
@@ -48,21 +45,18 @@ func main() {
 
 	db, err := sql.Open("postgres", psqlInfo) // does not open the connection, only validates the args
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer db.Close() // closes db connection when main() finishes
 
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	fmt.Println("Successfully connected!")
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", handlers.IndexPageHandler(store)).Methods("GET", "OPTIONS")
-
 	router.HandleFunc("/login", handlers.LogInPageHandler(db, store)).Methods("GET", "POST")
 	router.HandleFunc("/signup", handlers.SignUpPageHandler(db)).Methods("GET", "POST")
 	router.HandleFunc("/logout", handlers.LogOutHandler(store))
@@ -71,7 +65,7 @@ func main() {
 	router.HandleFunc("/files/{id}", handlers.DeleteFileHandler(db, store)).Methods("DELETE")
 	router.HandleFunc("/files/{id}", handlers.DownloadFileHandler(db, store)).Methods("GET")
 
-	// styles
+	// static files
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Println("Server started at http://" + server_host + ":" + server_port)

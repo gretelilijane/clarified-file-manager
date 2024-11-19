@@ -33,27 +33,27 @@ func executeLogInPage(db *sql.DB, store *sessions.CookieStore, w http.ResponseWr
 		return data, nil
 	}
 
-	var user types.User
 	// Get user, password_hash, password_salt from database
+	var user types.User
 	err := db.QueryRow("SELECT id, username, password_hash, password_salt FROM users WHERE username = $1", data.Username).Scan(&user.ID, &user.Username, &user.PasswordHash, &user.PasswordSalt)
 
 	if err != nil {
-		return data, err
+		data.ErrorMessage = "Wrong username or password"
+		return data, nil
 	}
 
 	// Compare password
 	argon2IDHash := auth.NewArgon2idHash(1, 32, 64*1024, 32, 256)
-
 	err = argon2IDHash.Compare(user.PasswordHash, user.PasswordSalt, []byte(data.Password))
+
 	if err != nil {
-		data.ErrorMessage = "Wrong email or password"
+		data.ErrorMessage = "Wrong username or password"
 		return data, nil
 	}
 
 	// Set session
 	session, _ := store.Get(r, "session")
 	session.Values["user_id"] = user.ID
-
 	session.Save(r, w)
 
 	// Redirect to dashboard page if login is successful

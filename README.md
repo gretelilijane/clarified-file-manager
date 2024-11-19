@@ -1,7 +1,7 @@
 # Quick set-up with docker
 
 ```sh
-docker-compose up --build
+docker compose up --build
 ```
 
 # Alternative development set-up
@@ -27,5 +27,5 @@ npm install
 ## Run 
 
 ```sh
-npm run start-dev
+npm run dev
 ```

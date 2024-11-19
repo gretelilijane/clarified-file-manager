@@ -8,7 +8,7 @@
 {{end}}
 
 {{define "body"}}
-<form hx-post="/signup" hx-target="#messages" hx-encoding="multipart/form-data" novalidate>
+<form hx-post="/signup" hx-target="#messages" hx-encoding="multipart/form-data">
   <div class="form-group">
     <label for="username" class="form-label">Username</label>
     <input type="text" class="form-control" id="username" name="username" required>

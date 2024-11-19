@@ -38,30 +38,21 @@ func executeSignUp(db *sql.DB, r *http.Request) (SignUpData, error) {
 		data.ErrorMessage = "Passwords do not match!"
 		return data, nil
 	}
-	// Check if username is already taken
-	var userExists bool = false
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", data.Username).Scan(&userExists)
 
-	if err != nil {
-		return data, err
-	}
-
-	if userExists {
-		data.ErrorMessage = "This username is already taken."
-		return data, nil
-	}
-
+	// Generate hash and salt
 	argon2IDHash := auth.NewArgon2idHash(1, 32, 64*1024, 32, 256)
-
 	hashSalt, err := argon2IDHash.GenerateHash([]byte(data.Password), nil)
+
 	if err != nil {
 		return data, err
 	}
 
+	// Try to insert user into database
 	_, err = db.Exec("INSERT INTO users (username, password_hash, password_salt) VALUES ($1, $2, $3)", data.Username, hashSalt.Hash, hashSalt.Salt)
 
 	if err != nil {
-		return data, err
+		data.ErrorMessage = "Username is already taken"
+		return data, nil
 	}
 
 	data.Success = true
