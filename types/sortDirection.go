@@ -1,7 +1,5 @@
 package types
 
-import "log"
-
 type SortDirection string
 
 const (
@@ -11,7 +9,6 @@ const (
 
 func SortDirectionFromString(value string) SortDirection {
 	direction := SortDirection(value)
-	log.Println("Direction: ", direction)
 
 	switch direction {
 	case Asc, Desc:

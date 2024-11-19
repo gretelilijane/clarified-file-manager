@@ -12,20 +12,16 @@ import (
 )
 
 type FilesPageData struct {
-	UserID       int32
-	ErrorMessage string
-	Success      bool
 	Files        []types.File
 	Sort         types.FileSortableColumn
 	Direction    types.SortDirection
+	UploadData   UploadData
+	TableHeaders []types.TableHeader
 }
 
 func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn, sortDirection types.SortDirection) ([]types.File, error) {
 	var files []types.File
-	//         query := fmt.Sprintf("SELECT id, name, age, created_at FROM users ORDER BY %s %s", sortColumn, sortOrder)
-	// query := fmt.Sprintf("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY $2 $3", userID, sort, desc)
 
-	// Construct the query safely
 	query := fmt.Sprintf("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY %s %s", sortColumn, sortDirection)
 	rows, err := db.Query(query, userID)
 
@@ -44,6 +40,88 @@ func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn,
 	return files, nil
 }
 
+func executeFilesPage(db *sql.DB, store *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (FilesPageData, error) {
+
+	data := FilesPageData{
+		Files:     nil,
+		Sort:      "uploaded_at",
+		Direction: "desc",
+	}
+
+	session, _ := store.Get(r, "session")
+	userId, ok := session.Values["user_id"].(int32)
+
+	if !ok {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return data, nil
+	}
+
+	// Get sort and direction from query params
+	query := r.URL.Query()
+
+	if query.Has("sort") {
+		data.Sort = types.FileSortableColumnFromString(query.Get("sort"))
+	}
+
+	if query.Has("dir") {
+		data.Direction = types.SortDirectionFromString(query.Get("dir"))
+	}
+
+	// Set table headers
+	headers := []types.TableHeader{
+		{
+			Title:   "Name",
+			SortKey: "name",
+		},
+		{
+			Title:   "Mime Type",
+			SortKey: "mime_type",
+		},
+		{
+			Title:   "Size",
+			SortKey: "size",
+		},
+		{
+			Title:   "Uploaded At",
+			SortKey: "uploaded_at",
+		},
+		{
+			Title: "Actions",
+		},
+	}
+
+	for _, header := range headers {
+		if header.SortKey == "" {
+			continue
+		}
+
+		// Is this header currently sorted by
+		if header.SortKey == data.Sort {
+			if data.Direction == "asc" {
+				header.Icon = "fa-sort-up"
+				header.Link = fmt.Sprintf("/files?sort=%s&dir=desc", header.SortKey)
+			} else {
+				header.Icon = "fa-sort-down"
+				header.Link = fmt.Sprintf("/files?sort=%s&dir=asc", header.SortKey)
+			}
+		} else {
+			header.Link = fmt.Sprintf("/files?sort=%s&dir=asc", header.SortKey)
+		}
+
+		data.TableHeaders = append(data.TableHeaders, header)
+	}
+
+	// Fetch user files
+	files, err := getUserFiles(db, userId, data.Sort, data.Direction)
+	if err != nil {
+		return data, err
+	}
+
+	data.Files = files
+
+	return data, nil
+}
+
 func FilesPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc {
 	tmpl, err := template.ParseFiles("views/base.html", "views/files.html", "views/upload-form.html")
 
@@ -53,53 +131,16 @@ func FilesPageHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc 
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		session, _ := store.Get(r, "session") // Custom session name
-		userId, ok := session.Values["user_id"].(int32)
+		data, err := executeFilesPage(db, store, w, r)
 
-		if !ok {
-			http.Redirect(w, r, "/login", http.StatusFound)
+		// Handle server errors
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
-		}
-
-		log.Println("User ID: ", userId)
-
-		data := FilesPageData{
-			UserID:       userId,
-			Success:      false,
-			Files:        nil,
-			ErrorMessage: "",
-			Sort:         "uploaded_at",
-			Direction:    "desc",
-		}
-
-		if r.Method == http.MethodGet {
-			query := r.URL.Query()
-
-			// Get sort and direction from query params
-			if query.Has("sort") {
-				data.Sort = types.FileSortableColumnFromString(query.Get("sort"))
-			}
-
-			if query.Has("dir") {
-				data.Direction = types.SortDirectionFromString(query.Get("dir"))
-			}
-
-			log.Println("Sort: ", data.Sort, "Direction: ", data.Direction)
-
-			files, err := getUserFiles(db, userId, data.Sort, data.Direction)
-			if err != nil {
-				http.Error(w, "Failed to retrieve files", http.StatusInternalServerError)
-				data.ErrorMessage = "Failed to retrieve files"
-				log.Fatal(err)
-			} else {
-				data.Files = files
-			}
 		}
 
 		// Render response based on request target
 		target := r.Header.Get("HX-Target")
-
-		log.Println("Target: ", target)
 
 		if target == "messages" || target == "files-table" {
 			tmpl.ExecuteTemplate(w, target, data)

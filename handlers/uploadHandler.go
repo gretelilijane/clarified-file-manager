@@ -30,16 +30,23 @@ func executeUpload(db *sql.DB, store *sessions.CookieStore, r *http.Request) (Up
 		return data, nil
 	}
 
-	// Parse the form data (multipart/form-data)
-	err := r.ParseMultipartForm(10 << 20) // 10 MB limit for file size
+	// Retrieve file from the form
+	f, fileHeader, err := r.FormFile("file")
 
 	if err != nil {
-		data.ErrorMessage = "File size exceeds the 10MB limit"
+		return data, err
+	}
+
+	// Check file size before reading the content
+	max_file_size := int64(10 * 1024 * 1024) // 10MiB
+
+	if fileHeader.Size > max_file_size {
+		data.ErrorMessage = "File size exceeds the 10 MiB limit"
 		return data, nil
 	}
 
-	// Retrieve the f from the form
-	f, fileHeader, err := r.FormFile("file")
+	// Parse the form data (multipart/form-data)
+	err = r.ParseMultipartForm(max_file_size)
 
 	if err != nil {
 		return data, err
