@@ -2,14 +2,19 @@ version: '3.9'
 services:
   app:
     container_name: golang_container
-    env_file:
-      - ./.env
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - DATABASE_HOST=postgres_container # Connect to the Postgres container using its name for docker-compose
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=clarified_file_manager_db
     tty: true # teletypewriter
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - ${SERVER_PORT}:${SERVER_PORT} # Host:Container
+      - '${SERVER_PORT}:8080' # Host:Container
     restart: on-failure
     volumes:
       - .:/app
@@ -21,10 +26,10 @@ services:
   db:
     image: postgres:latest
     container_name: postgres_container
-    env_file:
-      - ./.env
-    ports:
-      - '1234:5432' # Host: container TODO: Change the host port
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=clarified_file_manager_db
     restart: on-failure
     volumes:
       - pg_data:/var/lib/postgresql/data/

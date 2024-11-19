@@ -1,28 +1,31 @@
-# About
-# Set-up
-## Docker
+# Quick set-up with docker
+
 ```sh
-sudo docker-compose up --build
+docker-compose up --build
 ```
-## Dev
-### Install go modules
+
+# Alternative development set-up
+
+## Requirements
+- Node.js
+- Go 1.16
+- PostgreSQL
+
+## Environment
+
 ```sh
-go mod tidy
+cp .env.example .env
 ```
-### Database
-1. Install PostgreSQL
-2. Set up password for user `postgres`
-3. Allow password authentication in `pg_hba.conf`
-4. Run 
-```sh
-.\setup_db.sh
-```
-to create the database and tables
-### Run
+Set up postgres database and fill in the environment variables in `.env`
+
+## Install dependencies
 
 ```sh   
 npm install
 ``` 
+
+## Run 
+
 ```sh
 npm run start-dev
 ```

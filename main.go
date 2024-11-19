@@ -9,8 +9,6 @@ import (
 	"os"
 	"strconv"
 
-	//"encoding/json" // TODO: think if needed
-
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
