@@ -17,21 +17,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// var tmpl *template.Template
-var db *sql.DB
-
-func init() {
-	log.Println("Initializing the application")
-	// tmpl, _ = template.ParseGlob("views/*.html")
-}
-
-func loadEnv() error {
-	return godotenv.Load()
-}
-
 func main() {
 
-	err := loadEnv()
+	err := godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found, using default configuration")
 	}
