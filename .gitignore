@@ -1,3 +1,4 @@
 *.env
 *.session.sql
 /node_modules
+/.vscode
