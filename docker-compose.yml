@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  app:
+    container_name: golang_container
+    env_file:
+      - ./.env
+    tty: true # teletypewriter
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT} # Host:Container
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    networks:
+      - learning
+
+  db:
+    image: postgres:latest
+    container_name: postgres_container
+    env_file:
+      - ./.env
+    ports:
+      - '1234:5432' # Host: container TODO: Change the host port
+    restart: on-failure
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - learning
+
+volumes:
+  pg_data:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  learning:
+    driver: bridge

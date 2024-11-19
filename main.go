@@ -38,12 +38,12 @@ func main() {
 
 	var server_port string = os.Getenv("SERVER_PORT")
 	var server_host string = os.Getenv("SERVER_HOST")
-	var db_host string = os.Getenv("DB_HOST")
-	var db_port_str string = os.Getenv("DB_PORT")
-	var db_user string = os.Getenv("DB_USER")
-	var db_password string = os.Getenv("DB_PASSWORD")
-	var db_name string = os.Getenv("DB_NAME")
 	var session_key string = os.Getenv("SESSION_KEY")
+	var db_host string = os.Getenv("DATABASE_HOST")
+	var db_port_str string = os.Getenv("DATABASE_PORT")
+	var db_user string = os.Getenv("POSTGRES_USER")
+	var db_password string = os.Getenv("POSTGRES_PASSWORD")
+	var db_name string = os.Getenv("POSTGRES_DB")
 
 	// Set up cookie session store
 	store := sessions.NewCookieStore([]byte(session_key))

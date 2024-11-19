@@ -1,4 +1,12 @@
 
+{{define "navbar"}}
+<ul class="navbar-nav mb-1 mb-lg-0 d-flex">
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page" href="/login">Log in</a>
+    </li>
+</ul>
+{{end}}
+
 {{define "body"}}
 <form hx-post="/signup" hx-target="#messages" hx-encoding="multipart/form-data" novalidate>
   <div class="form-group">

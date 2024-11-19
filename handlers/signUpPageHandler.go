@@ -46,7 +46,7 @@ func SignUpPageHandler(db *sql.DB) http.HandlerFunc {
 
 				// Check if username is already taken
 				var userExists bool = false
-				err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", data.Username).Scan(&userExists)
+				err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", data.Username).Scan(&userExists)
 
 				if err != nil {
 					log.Println(err)
