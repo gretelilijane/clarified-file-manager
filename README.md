@@ -7,8 +7,8 @@ docker compose up --build
 # Alternative development set-up
 
 ## Requirements
-- Node.js
-- Go 1.16
+- Node.js (for development only)
+- Go 1.23.3
 - PostgreSQL
 
 ## Environment
