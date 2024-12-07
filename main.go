@@ -25,6 +25,10 @@ func main() {
 	var server_port string = os.Getenv("SERVER_PORT")
 	var server_host string = os.Getenv("SERVER_HOST")
 	var session_key string = os.Getenv("SESSION_KEY")
+	var session_secure_str string = os.Getenv("SESSION_SECURE")
+	var session_http_only_str string = os.Getenv("SESSION_HTTP_ONLY")
+	var session_max_age_str string = os.Getenv("SESSION_MAX_AGE")
+	// var session_same_site string = os.Getenv("SESSION_SAME_SITE")
 	var db_host string = os.Getenv("DATABASE_HOST")
 	var db_port_str string = os.Getenv("DATABASE_PORT")
 	var db_user string = os.Getenv("POSTGRES_USER")
@@ -32,7 +36,23 @@ func main() {
 	var db_name string = os.Getenv("POSTGRES_DB")
 
 	// Set up cookie session store
+	session_secure, err := strconv.ParseBool(session_secure_str)
+	if err != nil {
+		log.Fatal("Invalid boolean value for SESSION_SECURE: ", session_secure_str)
+	}
+
+	session_http_only, err := strconv.ParseBool(session_http_only_str)
+	if err != nil {
+		log.Fatal("Invalid boolean value for SESSION_HTTP_ONLY: ", session_http_only_str)
+	}
+
+	session_max_age, err := strconv.Atoi(session_max_age_str)
+	if err != nil {
+		log.Fatal("Invalid integer value for SESSION_MAX_AGE: ", session_max_age_str)
+	}
+
 	store := sessions.NewCookieStore([]byte(session_key))
+	store.Options = &sessions.Options{Secure: session_secure, HttpOnly: session_http_only, MaxAge: session_max_age} //, SameSite: http.SameSiteLaxMode}
 
 	db_port, err := strconv.Atoi(db_port_str)
 	if err != nil {
