@@ -5,7 +5,7 @@
 [cols="1,1,1,1", options="header"]
 |===
 | Type | ID | Description | Reasoning
-V
+
 | Session Management
 | 3.3.4
 | Verify that users are able to view and (having re-entered login credentials) log out of any or all currently active sessions and devices.
@@ -35,16 +35,18 @@ V
 
 ## Tests
 
-### 3.3.4 - Session Management
+### https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v32-session-binding[3.3.4] Session Management
 Verify that users are able to view and (having re-entered login credentials) log out of any or all currently active sessions and devices.
-
-Link: https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v32-session-binding
 
 #### Adaption
 
 Application does not have a feature to view currently active sessions, therefore this part of the verification will be omitted.
 
 "Verify that users are able to log out of all currently active sessions and devices."
+
+#### Verification Methodology
+
+Verification by active testing.
 
 #### Prerequisites
 
@@ -60,7 +62,7 @@ Application does not have a feature to view currently active sessions, therefore
 
 The user is logged out and redirected to the login page.
 
-#### Result
+#### Result(s)
 
 The user is incorrectly logged in and authenticated, allowing them to perform all user actions.
 
@@ -82,6 +84,52 @@ The malicious actor can perform the following actions:
 #### Recommendations
 
 Store the last logout time in the database and include the login time in the session cookie. If the login time is earlier than the logout time, discard any requests associated with this session token.
+
+### https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/[5.3.4] Server-Side Attacks
+Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
+
+#### Adaption
+
+No adaptation needed.
+
+#### Verification Methodology
+
+Verification by code inspection. (Could also be verified by active testing.)
+
+#### Prerequisites
+
+. Access to the source code.
+
+#### Procedure
+
+. Identify all places where data selection or database queries are used.
+. Verify that the queries are using parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
+
+#### Expected behaviour
+
+All database queries are protected from SQL injection attacks.
+
+#### Result(s)
+
+. Database query that writes username, password hash and salt to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/signUpPageHandler.go#L51[signupPageHandler]. This query is using Exec method which is parametrized. *This query is protected from SQL injection attacks.*
+. Database query that retrives user login data from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/logInPageHandler.go#L38[logInPageHandler]. This query is using QueryRow which is parametrized. *This query is protected from SQL injection attacks.*
+. Database query that retrives uploaded data in the user selected order is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/filesPageHandler%20.go#L26[filesPageHandler]. This query is partially parametrized. User ID is parametrized, but the order and sort directions are not. Order and sort directions are checked against a list of allowed values. If the value is not in the list, the default value is used. *This query is protected from SQL injection attacks.*
+. Database query that deletes a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/deleteFileHandler.go#L24[deleteFileHandler]. This query is using Exec method which is parametrized. *This query is protected from SQL injection attacks.*
+. Database query that uploads a file to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/uploadHandler.go#L80[uploadHandler]. This query is using QueryRow method which is parametrized. *This query is protected from SQL injection attacks.*
+. Database query that downloads a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/downloadFileHandler.go#L30[downloadFileHandler]. This query is using QueryRow method which is parametrized. *This query is protected from SQL injection attacks.*
+
+#### Explanation
+
+Parameterized queries protect against SQL injection by ensuring that user input is treated strictly as data, not as part of the SQL query itself. This prevents malicious users from manipulating the SQL query structure to execute unintended commands.
+
+#### Threat analysis
+
+This application is not vulnerable to SQL injection attacks.
+
+#### Recommendations
+
+N/A
+
 
 ### 13.2.3
 
