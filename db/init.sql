@@ -3,6 +3,7 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL,
     password_salt BYTEA NOT NULL,
     password_hash BYTEA NOT NULL
+    last_logout TIMESTAMP
 );
 
 -- Create a unique index on the username column to enforce uniqueness

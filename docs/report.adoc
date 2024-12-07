@@ -5,10 +5,10 @@
 [cols="1,1,1,1", options="header"]
 |===
 | Type | ID | Description | Reasoning
-
+V
 | Session Management
-| 3.3.2
-| If authenticators permit users to remain logged in, verify that re-authentication occurs periodically, both when actively used and after an idle period. (C6)
+| 3.3.4
+| Verify that users are able to view and (having re-entered login credentials) log out of any or all currently active sessions and devices.
 | I did not check this before, and I wish to check it now.
 
 | Server-Side Attacks
@@ -32,3 +32,57 @@
 | While I already know that this has not been implemented, and it is fairly easy to test, I am more interested in thinking through how to implement it on the webpage.
 
 |===
+
+## Tests
+
+### 3.3.4 - Session Management
+Verify that users are able to view and (having re-entered login credentials) log out of any or all currently active sessions and devices.
+
+Link: https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v32-session-binding
+
+#### Adaption
+
+Application does not have a feature to view currently active sessions, therefore this part of the verification will be omitted.
+
+"Verify that users are able to log out of all currently active sessions and devices."
+
+#### Prerequisites
+
+. User has a valid account and is logged in to the webpage.
+
+#### Procedure
+
+. Log out from the webpage by sending a GET request to the ```http://localhost:8070/logout``` page.
+. Use Session cookie from HTTP request header and set it as a session cookie in the browser.
+. Navigate to the ```http://localhost:8070/files``` page.
+
+#### Expected behaviour
+
+The user is logged out and redirected to the login page.
+
+#### Result
+
+The user is incorrectly logged in and authenticated, allowing them to perform all user actions.
+
+#### Explanation
+
+Terminating a session does not invalidate the session token, which remains valid until its MaxValue expiration time.
+
+#### Threat analysis
+
+If a malicious actor gains access to the session token, they can continue using the session even after the user has logged out, until the session token expires (MaxValue).
+
+The malicious actor can perform the following actions:
+
+. View the list of all files uploaded by the user.
+. Download any file from the user's account.
+. Upload new files to the user's account.
+. Delete any file from the user's account.
+
+#### Recommendations
+
+Store the last logout time in the database and include the login time in the session cookie. If the login time is earlier than the logout time, discard any requests associated with this session token.
+
+### 13.2.3
+
+Verify that RESTful web services that utilize cookies are protected from Cross-Site Request Forgery via the use of at least one or more of the following: double submit cookie pattern, CSRF nonces, or Origin request header checks.
