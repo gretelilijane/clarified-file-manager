@@ -35,7 +35,11 @@
 
 ## Tests
 
-### https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v32-session-binding[3.3.4] Session Management
+All test were performed with Google Chrome browser Version 128.0.6613.119 (Official Build) (64-bit) and with  Mozilla Firefox 133.0 browser.
+
+
+### https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v33-session-termination[3.3.4] Session Management
+
 Verify that users are able to view and (having re-entered login credentials) log out of any or all currently active sessions and devices.
 
 #### Adaption
@@ -54,9 +58,12 @@ Verification by active testing.
 
 #### Procedure
 
-. Log out from the webpage by sending a GET request to the ```http://localhost:8070/logout``` page.
-. Use Session cookie from HTTP request header and set it as a session cookie in the browser.
-. Navigate to the ```http://localhost:8070/files``` page.
+. Log in to the webpage in browser 1.
+. Open the webpage in another browser and log in with the same credentials in browser 2.
+. Save the session cookie from the browser 1.
+. Log out from browser 1 session by sending a GET request to the ```http://localhost:8070/logout``` page.
+. Use Session cookie from browser 1 and set it as a session cookie in  browser 2.
+. In browser 2, navigate to the ```http://localhost:8070/files``` page.
 
 #### Expected behaviour
 
@@ -85,7 +92,8 @@ The malicious actor can perform the following actions:
 
 Store the last logout time in the database and include the login time in the session cookie. If the login time is earlier than the logout time, discard any requests associated with this session token.
 
-### https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/[5.3.4] Server-Side Attacks
+### https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/#v53-output-encoding-and-injection-prevention[5.3.4] Server-Side Attacks
+
 Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
 
 #### Adaption
@@ -130,6 +138,62 @@ This application is not vulnerable to SQL injection attacks.
 
 N/A
 
+### https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2] XSS
+
+Verify that direct requests to uploaded files will never be executed as HTML/JavaScript content.
+
+#### Adaption
+
+No adaptation needed.
+
+#### Verification Methodology
+
+Verification by code inspectionand by testing.
+
+#### Prerequisites
+
+. Access to the source code.
+. Access to the webpage.
+
+#### Procedure
+
+. Log in to the webpage.
+. Create three files with content 
+```html
+<script>
+  alert('This is executed!');
+</script>
+```
+name one file `test.html`, the other `test.txt` and the third `test`.
+. Upload all files to the webpage.
+. Download all files from the webpage.
+. Inspect if alert message was executed.
+
+#### Expected behaviour
+
+Only direct request made to the uploaded files is downloading the files.
+None of the files should execute the JavaScript code when downloaded.
+
+#### Result(s)
+
+None of the files executed the JavaScript code.
+
+#### Explanation
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition[Content-Disposition] header is set to attachment, which forces the browser to download the file instead of displayed inline and executing it.
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type[Content-Type] header makes sure that in case the Content-Disposition header is unset, the browser will not execute the files with incorrect extensions (test and test.txt) as HTML/JavaScript.
+
+#### Threat analysis
+
+##### MIME sniffing
+
+Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files `test` and `test.txt` as HTML/JavaScript, potentially executing malicious script.
+
+#### Recommendations
+
+. Whitelist allowed MIME types.
+. Set `X-Content-Type-Options: nosniff` header. 
+. Scan file content with antivirus scanner before uploading it to the server.
 
 ### 13.2.3
 
