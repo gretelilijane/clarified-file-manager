@@ -148,7 +148,7 @@ No adaptation needed.
 
 #### Verification Methodology
 
-Verification by code inspectionand by testing.
+Verification by code inspectionand and by testing.
 
 #### Prerequisites
 
@@ -192,9 +192,53 @@ Some browsers may perform MIME sniffing and ignore the Content-Type header if th
 #### Recommendations
 
 . Whitelist allowed MIME types.
+. Discard files with unexpected file content.
 . Set `X-Content-Type-Options: nosniff` header. 
 . Scan file content with antivirus scanner before uploading it to the server.
 
-### 13.2.3
+### https://asvs.dev/v4.0.3/0x21-V13-API/#v132-restful-web-service[13.2.3] REST/API
 
 Verify that RESTful web services that utilize cookies are protected from Cross-Site Request Forgery via the use of at least one or more of the following: double submit cookie pattern, CSRF nonces, or Origin request header checks.
+
+#### Adaption/Scope
+
+The scope of the test is to veryfy that the DELETE request is protected from CSRF attacks.
+
+#### Verification Methodology
+
+Verification by testing.
+
+#### Prerequisites
+
+. Access to the webpage.
+
+#### Procedure
+
+. Log in to the webpage.
+. Upload a file to the webpage.
+. Check uploaded file ID using browser developer tools or by hovering with mouse over download button.
+. Serve file CSRF_delete.html to browser
+.. Set the correct id for DELETE request in ./docs/CSRF_delete.html line 10.
+.. cd /docs && python3 -m http.server 8000
+.. Navigate to http://{server_host}:8000/CSRF_delete.html
+.. Click on the button to delete the file.
+
+#### Expected behaviour
+
+DELETE request is protected from CSRF attacks.
+
+#### Result(s)
+
+DELETE request is protected from CSRF attacks.
+
+#### Explanation
+
+When doing CORS requests, server makes preflight request to check if the request is allowed. If the request is not allowed, the server will respond with 405 Method Not Allowed.
+
+#### Threat analysis
+
+Nothing to report here.
+
+#### Recommendations
+
+. Set `Access-Control-Allow-*` headers explicitly in the code for clarity.

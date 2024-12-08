@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <h1>Delete File</h1>
+    <p>Click the button below to delete file (set file ID on line 10) </p>
+    <button id="deleteFile">Delete File</button>
+
+    <script>
+      document.getElementById('deleteFile').addEventListener('click', function () {
+        fetch('http://0.0.0.0:8070/files/18', {
+          method: 'DELETE',
+          credentials: 'include', // Ensures cookies are sent with the request
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('File deleted successfully!');
+          } else {
+            alert('Failed to delete file. Status: ' + response.status);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred.');
+        });
+      });
+    </script>
+  </body>
+</html>
