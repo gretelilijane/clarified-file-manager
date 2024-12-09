@@ -287,4 +287,4 @@ N/A
 
 #### Recommendations
 
-. Return 413 Payload Too Large status code when file size exceeds the limit.
+. Return `413 Payload Too Large` status code when file size exceeds the limit.
