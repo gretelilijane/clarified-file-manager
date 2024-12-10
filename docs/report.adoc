@@ -1,4 +1,5 @@
 = ASVS Security Testing
+:sectnums:
 :sectnumlevels: 5
 
 == Selected ASVS points
@@ -31,7 +32,7 @@
 
 == Tests
 
-=== https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v33-session-termination[3.3.1] Session Management
+=== Session Management: https://asvs.dev/v4.0.3/0x12-V3-Session-management/#v33-session-termination[3.3.1]
 
 Verify that logout and expiration invalidate the session token, such that the back button or a downstream relying party does not resume an authenticated session, including across relying parties.
 
