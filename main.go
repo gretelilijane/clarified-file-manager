@@ -52,7 +52,7 @@ func main() {
 	}
 
 	store := sessions.NewCookieStore([]byte(session_key))
-	store.Options = &sessions.Options{Secure: session_secure, HttpOnly: session_http_only, MaxAge: session_max_age} //, SameSite: http.SameSiteLaxMode}
+	store.Options = &sessions.Options{Secure: session_secure, HttpOnly: session_http_only, MaxAge: session_max_age, SameSite: http.SameSiteLaxMode}
 
 	db_port, err := strconv.Atoi(db_port_str)
 	if err != nil {
