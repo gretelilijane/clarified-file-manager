@@ -23,9 +23,9 @@
 | REST/API
 | Verify that RESTful web services that utilize cookies are protected from Cross-Site Request Forgery via the use of at least one or more of the following: double submit cookie pattern, CSRF nonces, or Origin request header checks.
 
-| TODO
+| 12.1.1
 | File Management
-| TODO
+| Verify that the application will not accept large files that could fill up storage or cause a denial of service.
 
 |===
 
@@ -211,7 +211,7 @@ The user is incorrectly logged in and authenticated, allowing them to perform al
 
 ==== Explanation
 
-Terminating a session does not invalidate the session token, which remains valid until its MaxValue expiration time.
+Terminating a session does not invalidate the current and other active session tokens, which remain valid until their MaxValue expiration time.
 
 ==== Threat analysis
 
@@ -227,3 +227,203 @@ The malicious actor can perform the following actions:
 ==== Recommendations
 
 . Invalidate the session token on logout.
+
+##### Implementation example
+
+Store the last logout time in the database and include the login time in the session cookie. If the login time is earlier than the logout time, discard any requests associated with this session token.
+
+### https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/#v53-output-encoding-and-injection-prevention[5.3.4] Server-Side Attacks
+
+Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
+
+#### Adaptation/Scope
+
+No adaptation needed.
+
+#### Verification Methodology
+
+Verification by code inspection. (Could also be verified by active testing.)
+
+#### Prerequisites
+
+. Access to the source code.
+
+#### Procedure
+
+. Identify all places where data selection or database queries are used.
+. Verify that the queries are using parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
+
+#### Expected behaviour
+
+All database queries are protected from SQL injection attacks.
+
+#### Result(s)
+
+. Database query that writes username, password hash and salt to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/signUpPageHandler.go#L51[signupPageHandler]. This query is using Exec method which is parameterized. *This query is protected from SQL injection attacks.*
+. Database query that retrives user login data from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/logInPageHandler.go#L38[logInPageHandler]. This query is using QueryRow which is parameterized. *This query is protected from SQL injection attacks.*
+. Database query that retrives uploaded data in the user selected order is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/filesPageHandler%20.go#L26[filesPageHandler]. This query is partially parameterized. User ID is parameterized, but the order and sort directions are not. Order and sort directions are checked against a list of allowed values. If the value is not in the list, the default value is used. *This query is protected from SQL injection attacks.*
+. Database query that deletes a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/deleteFileHandler.go#L24[deleteFileHandler]. This query is using Exec method which is parameterized. *This query is protected from SQL injection attacks.*
+. Database query that uploads a file to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/uploadHandler.go#L80[uploadHandler]. This query is using QueryRow method which is parameterized. *This query is protected from SQL injection attacks.*
+. Database query that downloads a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/downloadFileHandler.go#L30[downloadFileHandler]. This query is using QueryRow method which is parameterized. *This query is protected from SQL injection attacks.*
+
+#### Explanation
+
+Parameterized queries protect against SQL injection by ensuring that user input is treated strictly as data, not as part of the SQL query itself. This prevents malicious users from manipulating the SQL query structure to execute unintended commands.
+
+#### Threat analysis
+
+This application is not vulnerable to SQL injection attacks.
+
+#### Recommendations
+
+N/A
+
+### https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2] XSS
+
+Verify that direct requests to uploaded files will never be executed as HTML/JavaScript content.
+
+#### Adaptation/Scope
+
+No adaptation needed.
+
+#### Verification Methodology
+
+Verification by code inspection and and by testing.
+
+#### Prerequisites
+
+. Access to the source code.
+. Access to the webpage.
+
+#### Procedure
+
+. Log in to the webpage.
+. Create three files with content 
+```html
+<script>
+  alert('This is executed!');
+</script>
+```
+name one file `test.html`, the other `test.txt` and the third `test`.
+
+. Upload all files to the webpage.
+. Download all files from the webpage.
+. Inspect if alert message was executed.
+
+#### Expected behaviour
+
+Only direct request made to the uploaded files is downloading the files.
+None of the files should execute the JavaScript code when downloaded.
+
+#### Result(s)
+
+None of the files executed the JavaScript code.
+
+#### Explanation
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition[Content-Disposition] header is set to attachment, which forces the browser to download the file instead of displayed inline and executing it.
+
+#### Threat analysis
+
+While MIME sniffing is not a security issue with current web application, it may become a security issue when the application adds additional features like browser renders the file content by allowing to preview the file that will be uploaded.
+
+##### MIME sniffing
+
+Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files `test` and `test.txt` as HTML/JavaScript, potentially executing malicious script.
+
+#### Recommendations
+
+. Whitelist allowed MIME types.
+. Discard files with unexpected file content.
+. Set `X-Content-Type-Options: nosniff` header. 
+. Scan file content with antivirus scanner before uploading it to the server.
+
+### https://asvs.dev/v4.0.3/0x21-V13-API/#v132-restful-web-service[13.2.3] REST/API
+
+Verify that RESTful web services that utilize cookies are protected from Cross-Site Request Forgery via the use of at least one or more of the following: double submit cookie pattern, CSRF nonces, or Origin request header checks.
+
+#### Adaptation/Scope
+
+The scope of the test is to veryfy that the DELETE request is protected from CSRF attacks.
+
+#### Verification Methodology
+
+Verification by testing.
+
+#### Prerequisites
+
+. Access to the webpage.
+
+#### Procedure
+
+. Log in to the webpage.
+. Upload a file to the webpage.
+. Check uploaded file ID using browser developer tools or by hovering with mouse over download button.
+. Serve file CSRF_delete.html to browser
+.. Set the correct id for DELETE request in ./docs/CSRF_delete.html line https://github.com/gretelilijane/clarified-file-manager/blob/0e106ae1dda9b31e08814458a7dbc1f1ea2bf9e9/docs/CSRF_delete.html#L10[10].
+.. Serve file CSRF_delete.html to browser: `cd /docs && python3 -m http.server 8000`
+.. Navigate to http://{server_host}:8000/CSRF_delete.html
+.. Click on the button to delete the file.
+
+#### Expected behaviour
+
+DELETE request is protected from CSRF attacks.
+
+#### Result(s)
+
+DELETE request is protected from CSRF attacks.
+
+#### Explanation
+
+When doing CORS requests, server makes preflight request to check if the request is allowed. If the request is not allowed, the server will respond with 405 Method Not Allowed.
+
+#### Threat analysis
+
+N/A
+
+#### Recommendations
+
+. Set `Access-Control-Allow-*` headers explicitly in the code for clarity.
+
+### https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#control-objective[12.1.1] Files
+
+Verify that the application will not accept large files that could fill up storage or cause a denial of service.
+
+#### Adaptation/Scope
+
+No adaptation needed.
+
+#### Verification Methodology
+
+Verification by testing and by code inspection.
+
+#### Prerequisites
+
+. Access to the webpage.
+. Valid user account.
+
+#### Procedure
+
+. Log in to the webpage.
+. Upload a file larger than 1 GB.
+
+#### Expected behaviour
+
+File larger than 1 GB is not uploaded.
+
+#### Result(s)
+
+File larger than 1 GB is not uploaded. UI diplays a message: "File size exceeds the 10 MiB limit", however upload request returned 200 OK status code.
+
+#### Explanation
+
+Source code https://github.com/gretelilijane/clarified-file-manager/blob/0e106ae1dda9b31e08814458a7dbc1f1ea2bf9e9/handlers/uploadHandler.go#L41[checks if the file size is larger than 10 MiB] and if it is, it does not save the file to PostgreSQL.
+
+
+#### Threat analysis
+
+N/A
+
+#### Recommendations
+
+. Return `413 Payload Too Large` status code when file size exceeds the limit.

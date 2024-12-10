@@ -1,31 +1,39 @@
-# Quick set-up with docker
+## Quick set-up with docker
 
 ```sh
 docker compose up --build
 ```
 
-# Alternative development set-up
+## Alternative development set-up
 
-## Requirements
+### Requirements
 - Node.js (for development only)
 - Go 1.23.3
 - PostgreSQL
 
-## Environment
+### Environment
 
 ```sh
 cp .env.example .env
 ```
 Set up postgres database and fill in the environment variables in `.env`
 
-## Install dependencies
+### Install dependencies
 
 ```sh   
 npm install
 ``` 
 
-## Run 
+### Run 
 
 ```sh
 npm run dev
+```
+
+## Docs
+
+### Report generation
+
+```
+asciidoctor-pdf -a allow-uri-read docs/report.adoc -o out/report.pdf
 ```
