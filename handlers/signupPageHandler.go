@@ -25,6 +25,8 @@ func executeSignUp(db *sql.DB, r *http.Request) (SignUpData, error) {
 		ErrorMessage:    "",
 	}
 
+	log.Printf("SIGNUP, Username: %s, Password: %s, Confirm Password: %s", data.Username, data.Password, data.ConfirmPassword)
+
 	if r.Method != http.MethodPost {
 		return data, nil
 	}

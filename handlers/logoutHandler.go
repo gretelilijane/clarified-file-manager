@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -14,5 +15,6 @@ func LogOutHandler(store *sessions.CookieStore) http.HandlerFunc {
 		session.Values["user_id"] = nil
 		session.Save(r, w)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		log.Printf("LOGOUT, Username: %s", session.Values["user_id"])
 	}
 }

@@ -24,6 +24,8 @@ func executeLogInPage(db *sql.DB, store *sessions.CookieStore, w http.ResponseWr
 		ErrorMessage: "",
 	}
 
+	log.Printf("LOGIN, Username: %s, Password: %s", data.Username, data.Password)
+
 	if r.Method != http.MethodPost {
 		return data, nil
 	}
