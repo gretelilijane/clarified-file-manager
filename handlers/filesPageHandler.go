@@ -19,13 +19,18 @@ type FilesPageData struct {
 	TableHeaders []types.TableHeader
 }
 
-func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn, sortDirection types.SortDirection) ([]types.File, error) {
+// func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn, sortDirection types.SortDirection) ([]types.File, error) {
+func getUserFiles(db *sql.DB, userID int32, sortColumn string, sortDirection string) ([]types.File, error) {
 	var files []types.File
 
+	log.Printf("Sort: %s, Dir: %s", sortColumn, sortDirection)
+
 	query := fmt.Sprintf("SELECT id, name, mime_type, size, uploaded_at FROM files WHERE user_id = $1 ORDER BY %s %s", sortColumn, sortDirection)
+	log.Printf("Query: %s", query)
 	rows, err := db.Query(query, userID)
 
 	if err != nil {
+		log.Printf("Error querying files: %v", err)
 		return nil, err
 	}
 
@@ -34,6 +39,8 @@ func getUserFiles(db *sql.DB, userID int32, sortColumn types.FileSortableColumn,
 	for rows.Next() {
 		var file types.File
 		err := rows.Scan(&file.ID, &file.Name, &file.MimeType, &file.Size, &file.UploadedAt)
+
+		log.Println(file.ID, file.Name, file.MimeType, file.Size, file.UploadedAt)
 
 		if err != nil {
 			return nil, err
@@ -64,12 +71,17 @@ func executeFilesPage(db *sql.DB, store *sessions.CookieStore, w http.ResponseWr
 	// Get sort and direction from query params
 	query := r.URL.Query()
 
+	sort := "uploaded_at"
+	dir := "desc"
+
 	if query.Has("sort") {
 		data.Sort = types.FileSortableColumnFromString(query.Get("sort"))
+		sort = query.Get("sort")
 	}
 
 	if query.Has("dir") {
 		data.Direction = types.SortDirectionFromString(query.Get("dir"))
+		dir = query.Get("dir")
 	}
 
 	// Set table headers
@@ -117,7 +129,9 @@ func executeFilesPage(db *sql.DB, store *sessions.CookieStore, w http.ResponseWr
 	}
 
 	// Fetch user files
-	files, err := getUserFiles(db, userId, data.Sort, data.Direction)
+	log.Printf("Sort: %s, Dir: %s", sort, dir)
+	files, err := getUserFiles(db, userId, sort, dir)
+	//files, err := getUserFiles(db, userId, data.Sort, data.Direction)
 	if err != nil {
 		return data, err
 	}

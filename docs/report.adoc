@@ -235,43 +235,10 @@ The malicious actor can perform the following actions:
 
 . Invalidate the session token on logout.
 
-===== Implementation example
-
-Store the last logout time in the database and include the login time in the session cookie. If the login time is earlier than the logout time, discard any requests associated with this session token.
-
 === https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/#v53-output-encoding-and-injection-prevention[5.3.4] Server-Side Attacks
 
 Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
 
-==== Adaptation/Scope
-
-No adaptation needed.
-
-==== Verification Methodology
-
-Verification by code inspection. (Could also be verified by active testing.)
-
-==== Prerequisites
-
-. Access to the source code.
-
-==== Procedure
-
-. Identify all places where data selection or database queries are used.
-. Verify that the queries are using parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
-
-==== Expected behaviour
-
-All database queries are protected from SQL injection attacks.
-
-==== Result(s)
-
-. Database query that writes username, password hash and salt to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/signUpPageHandler.go#L51[signupPageHandler]. This query is using Exec method which is parameterized. *This query is protected from SQL injection attacks.*
-. Database query that retrives user login data from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/logInPageHandler.go#L38[logInPageHandler]. This query is using QueryRow which is parameterized. *This query is protected from SQL injection attacks.*
-. Database query that retrives uploaded data in the user selected order is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/filesPageHandler%20.go#L26[filesPageHandler]. This query is partially parameterized. User ID is parameterized, but the order and sort directions are not. Order and sort directions are checked against a list of allowed values. If the value is not in the list, the default value is used. *This query is protected from SQL injection attacks.*
-. Database query that deletes a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/deleteFileHandler.go#L24[deleteFileHandler]. This query is using Exec method which is parameterized. *This query is protected from SQL injection attacks.*
-. Database query that uploads a file to the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/uploadHandler.go#L80[uploadHandler]. This query is using QueryRow method which is parameterized. *This query is protected from SQL injection attacks.*
-. Database query that downloads a file from the DB is in the https://github.com/gretelilijane/clarified-file-manager/blob/6be396ffc32207eaa6a68be30a89bb620821f126/handlers/downloadFileHandler.go#L30[downloadFileHandler]. This query is using QueryRow method which is parameterized. *This query is protected from SQL injection attacks.*
 
 ==== Explanation
 
@@ -279,11 +246,9 @@ Parameterized queries protect against SQL injection by ensuring that user input 
 
 ==== Threat analysis
 
-This application is not vulnerable to SQL injection attacks.
 
 ==== Recommendations
 
-N/A
 
 === https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2] XSS
 
