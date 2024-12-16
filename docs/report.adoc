@@ -40,6 +40,8 @@ Verify that logout and expiration invalidate the session token, such that the ba
 
 . User has a valid account.
 
+==== Procedure
+
 ===== User logs in to the webpage and receives a session cookie
 
 [source, HTTP]
@@ -72,8 +74,6 @@ Date: Tue, 10 Dec 2024 19:26:29 GMT
 Content-Length: 1803
 Content-Type: text/html; charset=utf-8
 ----
-
-==== Procedure
 
 ===== User logs out of the webpage
 
