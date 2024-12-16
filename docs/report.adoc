@@ -487,6 +487,7 @@ When doing CORS requests, server makes preflight OPTIONS request to check if the
 Malicios actor can perform CSRF attacks to a logged in user by sending a DELETE, POST, PUT or GET request to the server.
 
 This results in the following actions:
+
 . Delete any file from the user's account.
 . Upload new files to the user's account.
 . Download any file from the user's account.
