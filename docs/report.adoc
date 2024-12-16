@@ -235,7 +235,7 @@ The malicious actor can perform the following actions:
 
 . Invalidate the session token on logout.
 
-=== https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/#v53-output-encoding-and-injection-prevention[5.3.4] Server-Side Attacks
+=== Server-Side Attacks: https://asvs.dev/v4.0.3/0x13-V5-Validation-Sanitization-Encoding/#v53-output-encoding-and-injection-prevention[5.3.4]
 
 Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
 
@@ -252,7 +252,7 @@ Our analysis detected 2 SQL injection vulnerabilities in the application.
 Download file request is vulnerable to SQL injection and allows to download any file without authentication.
 
 [source, HTTP]
-.HTTP GET /files/{file_id} request header
+.HTTP GET /files/1 OR '1'='1' ORDER BY name LIMIT 1 OFFSET 1;--" request header
 ----
 GET /files/1%20OR%20'1'='1'%20ORDER%20BY%20name%20LIMIT%201%20OFFSET%201;-- HTTP/1.1
 User-Agent: PostmanRuntime/7.43.0
@@ -265,7 +265,7 @@ Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01D
 ----
 
 [source, HTTP]
-.HTTP GET /files/{file_id} response header
+.HTTP GET /files/1 OR '1'='1' ORDER BY name LIMIT 1 OFFSET 1;--" response header
 ----
 HTTP/1.1 200 OK
 Content-Disposition: attachment; filename="5433.732000.jpg"
@@ -283,6 +283,7 @@ Transfer-Encoding: chunked
 Table sorting is not enumerated and is vulnerable to SQL injection. This can be exploited to perform DoS attacks.
 
 [source, HTTP]
+.HTTP GET /files?sort=name, (SELECT 1 FROM pg_sleep(30)) request
 ----
 GET /files?sort=name,%20(SELECT%201%20FROM%20pg_sleep(30)) HTTP/1.1
 User-Agent: PostmanRuntime/7.43.0
@@ -298,6 +299,7 @@ Request took 30.04 seconds to respond.
 
 
 [source, HTTP]
+.HTTP GET /files?sort=name, (SELECT 1 FROM pg_sleep(30)) response
 ----
 HTTP/1.1 200 OK
 Date: Mon, 16 Dec 2024 18:10:45 GMT
@@ -317,7 +319,7 @@ Parameterized queries protect against SQL injection by ensuring that user input 
 
 . Parametrize all queries to prevent SQL injection attacks.
 
-=== https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2] XSS
+=== XSS: https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2]
 
 Verify that direct requests to uploaded files will never be executed as HTML/JavaScript content.
 
@@ -493,30 +495,130 @@ This results in the following actions:
 ==== Recommendations
 
 . Whitelist allowed origins. Do not allow requests from any origin.
-. Obfuscate file ids to prevent CSRF attacks that download or delete files.
+. Obfuscate file ids to mitigate CSRF attacks that download or delete files.
 
-=== https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#control-objective[12.1.1] Files
+=== Files: https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#control-objective[12.1.1]
 
 Verify that the application will not accept large files that could fill up storage or cause a denial of service.
 
-==== Adaptation/Scope
-
-No adaptation needed.
-
-==== Verification Methodology
-
-Verification by testing and by code inspection.
-
 ==== Prerequisites
 
-. Access to the webpage.
-. Valid user account.
+. User has a valid account.
+. User is logged in.
 
 ==== Procedure
 
-. Log in to the webpage.
-. Upload a file larger than 1 GB.
+===== Upload file larger than 1 GB
 
+[source, HTTP]
+.HTTP POST /files request
+----
+POST /files HTTP/1.1
+Accept: */*
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9,et;q=0.8
+Connection: keep-alive
+Content-Length: 5578801484
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary2psQU20XsR5HqUxo
+Cookie: session=MTczNDM3NzYzNnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fBbvpS0GhLfEv4i12beIheuJLdrcS_0TW4mDHRdMSV8K
+HX-Current-URL: http://0.0.0.0:8070/files
+HX-Request: true
+HX-Target: upload-form
+HX-Trigger: upload-form
+Host: 0.0.0.0:8070
+Origin: http://0.0.0.0:8070
+Referer: http://0.0.0.0:8070/files
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36
+----
+
+[source, HTTP]
+.HTTP POST /files response
+----
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Origin: http://0.0.0.0:8070
+Date: Mon, 16 Dec 2024 19:48:01 GMT
+Content-Length: 476
+Content-Type: text/plain; charset=utf-8
+
+<form
+    id="upload-form"
+    class="form" 
+    hx-post="/files" 
+    hx-encoding="multipart/form-data"
+    hx-target="#upload-form"
+    hx-swap="outerHTML"
+>
+    <div class="input-group">
+        <input type="file" class="form-control" name="file" required>
+        <button class="btn btn-primary" type="submit">Upload</button>
+    </div>
+
+    
+    <div class="alert alert-danger mt-3" role="alert">
+        File size exceeds the 10 MiB limit
+    </div>
+</form>
+----
+
+===== Upload file smaller than 1 GB
+
+[source, HTTP]
+.HTTP POST /files request
+----
+POST /files HTTP/1.1
+Accept: */*
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9,et;q=0.8
+Connection: keep-alive
+Content-Length: 175179
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarysLwUmJMwR6Ef1UQE
+Cookie: session=MTczNDM3NzYzNnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fBbvpS0GhLfEv4i12beIheuJLdrcS_0TW4mDHRdMSV8K
+HX-Current-URL: http://0.0.0.0:8070/files
+HX-Request: true
+HX-Target: upload-form
+HX-Trigger: upload-form
+Host: 0.0.0.0:8070
+Origin: http://0.0.0.0:8070
+Referer: http://0.0.0.0:8070/files
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36
+----
+
+[source, HTTP]
+.HTTP POST /files response
+----
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Origin: http://0.0.0.0:8070
+Hx-Trigger: file-uploaded
+Date: Mon, 16 Dec 2024 19:50:44 GMT
+Content-Length: 479
+Content-Type: text/plain; charset=utf-8
+ 
+<form
+    id="upload-form"
+    class="form" 
+    hx-post="/files" 
+    hx-encoding="multipart/form-data"
+    hx-target="#upload-form"
+    hx-swap="outerHTML"
+>
+    <div class="input-group">
+        <input type="file" class="form-control" name="file" required>
+        <button class="btn btn-primary" type="submit">Upload</button>
+    </div>
+
+    
+
+    
+    <div class="alert alert-success mt-3" role="alert">
+        File has been successfully uploaded.
+    </div>
+    
+</form>
+----
 ==== Expected behaviour
 
 File larger than 1 GB is not uploaded.
@@ -528,7 +630,6 @@ File larger than 1 GB is not uploaded. UI diplays a message: "File size exceeds 
 ==== Explanation
 
 Source code https://github.com/gretelilijane/clarified-file-manager/blob/0e106ae1dda9b31e08814458a7dbc1f1ea2bf9e9/handlers/uploadHandler.go#L41[checks if the file size is larger than 10 MiB] and if it is, it does not save the file to PostgreSQL.
-
 
 ==== Threat analysis
 
