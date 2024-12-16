@@ -533,7 +533,7 @@ User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 ----
 
 [source, HTTP]
-.HTTP POST /files response
+.HTTP POST /files response headers
 ----
 HTTP/1.1 200 OK
 Access-Control-Allow-Credentials: true
@@ -542,7 +542,11 @@ Access-Control-Allow-Origin: http://0.0.0.0:8070
 Date: Mon, 16 Dec 2024 19:48:01 GMT
 Content-Length: 476
 Content-Type: text/plain; charset=utf-8
+----
 
+[source, HTML]
+.HTML POST /files response 
+----
 <form
     id="upload-form"
     class="form" 
