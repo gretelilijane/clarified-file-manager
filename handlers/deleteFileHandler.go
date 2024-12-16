@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -13,6 +14,8 @@ func DeleteFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFunc
 
 		session, _ := store.Get(r, "session")
 		userId, ok := session.Values["user_id"].(int32)
+
+		log.Println("userId: ", userId, "ok: ", ok)
 
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)

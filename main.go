@@ -15,6 +15,29 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func allowAllOriginsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		origin := r.Header.Get("Origin")
+
+		if origin != "" {
+			// Set CORS headers to allow credentials
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			//w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		}
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		// Proceed to the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 
 	err := godotenv.Load()
@@ -53,6 +76,7 @@ func main() {
 
 	store := sessions.NewCookieStore([]byte(session_key))
 	store.Options = &sessions.Options{Secure: session_secure, HttpOnly: session_http_only, MaxAge: session_max_age, SameSite: http.SameSiteLaxMode}
+	//store.Options = &sessions.Options{Secure: session_secure, HttpOnly: session_http_only, MaxAge: session_max_age, SameSite: http.SameSiteNoneMode}
 
 	db_port, err := strconv.Atoi(db_port_str)
 	if err != nil {
@@ -89,5 +113,7 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Println("Server started at http://" + server_host + ":" + server_port)
-	log.Fatal(http.ListenAndServe(server_host+":"+server_port, router))
+	//log.Fatal(http.ListenAndServe(server_host+":"+server_port, router))
+	log.Fatal(http.ListenAndServe(server_host+":"+server_port, allowAllOriginsMiddleware(router)))
+
 }

@@ -239,123 +239,261 @@ The malicious actor can perform the following actions:
 
 Verify that data selection or database queries (e.g., SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks.
 
+==== Prerequisites
+. User has a valid account.
+. User is logged in.
 
-==== Explanation
+==== Procedure
 
-Parameterized queries protect against SQL injection by ensuring that user input is treated strictly as data, not as part of the SQL query itself. This prevents malicious users from manipulating the SQL query structure to execute unintended commands.
+Our analysis detected 2 SQL injection vulnerabilities in the application. 
 
-==== Threat analysis
+===== Vulnerable download file request
+
+Download file request is vulnerable to SQL injection and allows to download any file without authentication.
+
+[source, HTTP]
+.HTTP GET /files/{file_id} request header
+----
+GET /files/1%20OR%20'1'='1'%20ORDER%20BY%20name%20LIMIT%201%20OFFSET%201;-- HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Postman-Token: 6bb3242f-ca34-4956-a37e-83e8a360419e
+Host: 0.0.0.0:8070
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fDOkN2idNF_fuspPH9w7okbnWlAmEsszTsxMZQHtn2RP
+----
+
+[source, HTTP]
+.HTTP GET /files/{file_id} response header
+----
+HTTP/1.1 200 OK
+Content-Disposition: attachment; filename="5433.732000.jpg"
+Content-Type: image/jpeg
+Date: Mon, 16 Dec 2024 18:01:08 GMT
+Transfer-Encoding: chunked
+----
+
+====== Threat analysis
+
+. Malicious actor can download any file from the database without authentication.
+
+===== Vulnerable table sorting
+
+Table sorting is not enumerated and is vulnerable to SQL injection. This can be exploited to perform DoS attacks.
+
+[source, HTTP]
+----
+GET /files?sort=name,%20(SELECT%201%20FROM%20pg_sleep(30)) HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Postman-Token: 3c98bbc3-397d-4fe4-bc99-4f85309c3845
+Host: 0.0.0.0:8070
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fDOkN2idNF_fuspPH9w7okbnWlAmEsszTsxMZQHtn2RP
+----
+
+Request took 30.04 seconds to respond.
 
 
-==== Recommendations
+[source, HTTP]
+----
+HTTP/1.1 200 OK
+Date: Mon, 16 Dec 2024 18:10:45 GMT
+Content-Type: text/html; charset=utf-8
+Transfer-Encoding: chunked
+----
 
+====== Threat analysis
+
+. Malicious actor can use this vulnerability to perform DoS attacks.
+
+===== Explanation
+
+Parameterized queries protect against SQL injection by ensuring that user input is treated strictly as data, not as part of the SQL query itself. This prevents malicious users from manipulating the SQL query structure to execute unintended commands. Query that downloads the file is not parametrized and is vulnerable to SQL injection.
+
+===== Recommendations
+
+. Parametrize all queries to prevent SQL injection attacks.
 
 === https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#v125-file-download[12.5.2] XSS
 
 Verify that direct requests to uploaded files will never be executed as HTML/JavaScript content.
 
-==== Adaptation/Scope
-
-No adaptation needed.
-
-==== Verification Methodology
-
-Verification by code inspection and and by testing.
-
 ==== Prerequisites
 
-. Access to the source code.
-. Access to the webpage.
+. User has a valid account.
+. User is logged in.
 
 ==== Procedure
 
-. Log in to the webpage.
-. Create three files with content 
+. Create file with content 
 ```html
 <script>
-  alert('This is executed!');
+  alert('XSS');
 </script>
 ```
-name one file `test.html`, the other `test.txt` and the third `test`.
+name it `malicious.html`.
 
-. Upload all files to the webpage.
-. Download all files from the webpage.
+. Upload file to the webpage.
+. Download file from the webpage.
 . Inspect if alert message was executed.
+
+[source, HTTP]
+.HTTP GET /files/{file_id} request
+----
+GET /files/41 HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Postman-Token: 26214bc8-9480-4ac4-b924-468c6451027c
+Host: 0.0.0.0:8070
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: session=MTczNDM3MzU2MnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fJbsqMxb2Brh-Jmdc8dom9f8DU7oSfSQOtHbEx1I2L9j
+----
+
+[source, HTTP]
+.HTTP GET /files/{file_id} response
+----
+HTTP/1.1 200 OK
+Content-Disposition: inline; filename="malicious.html"
+Content-Type: text/html
+Date: Mon, 16 Dec 2024 18:29:03 GMT
+Content-Length: 31
+
+<script>alert('XSS');</script>
+----
 
 ==== Expected behaviour
 
-Only direct request made to the uploaded files is downloading the files.
-None of the files should execute the JavaScript code when downloaded.
+Javascript code is not executed. Alert message is not displayed.
 
 ==== Result(s)
 
-None of the files executed the JavaScript code.
+Javascript code is executed. Alert message is displayed.
 
 ==== Explanation
 
-https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition[Content-Disposition] header is set to attachment, which forces the browser to download the file instead of displayed inline and executing it.
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition[Content-Disposition] header is set to inline, which allows the browser to render the file as HTML/JavaScript content.
 
 ==== Threat analysis
 
-While MIME sniffing is not a security issue with current web application, it may become a security issue when the application adds additional features like browser renders the file content by allowing to preview the file that will be uploaded.
+. Arbitrary JavaScript code can be executed if the file is rendered as HTML/JavaScript content in the browser on download.
 
-===== MIME sniffing
-
-Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files `test` and `test.txt` as HTML/JavaScript, potentially executing malicious script.
+This threat is especially dangerous together with CSRF attack vulnerability when malicious actor can upload a file with malicious content. When user downloads the file, the malicious code is executed. If the application coockie setting is httpOnly=false, the malicious actor can steal the user's session cookie and hijack the user's session. 
 
 ==== Recommendations
 
+. Set `Content-Disposition: attachment` header to force the browser to download the file instead of displaying it inline.
 . Whitelist allowed MIME types.
 . Discard files with unexpected file content.
-. Set `X-Content-Type-Options: nosniff` header. 
+. Set `X-Content-Type-Options: nosniff` header. Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files `test` and `test.txt` as HTML/JavaScript, potentially executing malicious script.
 . Scan file content with antivirus scanner before uploading it to the server.
 
-=== https://asvs.dev/v4.0.3/0x21-V13-API/#v132-restful-web-service[13.2.3] REST/API
+=== REST/API: https://asvs.dev/v4.0.3/0x21-V13-API/#v132-restful-web-service[13.2.3]
 
 Verify that RESTful web services that utilize cookies are protected from Cross-Site Request Forgery via the use of at least one or more of the following: double submit cookie pattern, CSRF nonces, or Origin request header checks.
 
-==== Adaptation/Scope
-
-The scope of the test is to veryfy that the DELETE request is protected from CSRF attacks.
-
-==== Verification Methodology
-
-Verification by testing.
 
 ==== Prerequisites
-
-. Access to the webpage.
+. User has a valid account.
+. User is logged in.
 
 ==== Procedure
 
-. Log in to the webpage.
-. Upload a file to the webpage.
-. Check uploaded file ID using browser developer tools or by hovering with mouse over download button.
-. Serve file CSRF_delete.html to browser
-.. Set the correct id for DELETE request in ./docs/CSRF_delete.html line https://github.com/gretelilijane/clarified-file-manager/blob/0e106ae1dda9b31e08814458a7dbc1f1ea2bf9e9/docs/CSRF_delete.html#L10[10].
-.. Serve file CSRF_delete.html to browser: `cd /docs && python3 -m http.server 8000`
-.. Navigate to http://{server_host}:8000/CSRF_delete.html
-.. Click on the button to delete the file.
+===== OPTIONS request to check if DELETE request is allowed
+
+[source, HTTP]
+.HTTP OPTIONS /files/{file_id} request
+----
+OPTIONS /files/40 HTTP/1.1
+Host: 0.0.0.0:8070
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Access-Control-Request-Method: DELETE
+Referer: http://0.0.0.0:8000/
+Origin: http://0.0.0.0:8000
+Connection: keep-alive
+Priority: u=4
+----
+
+[source, HTTP]
+.HTTP OPTIONS /files/{file_id} response
+----
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Origin: http://0.0.0.0:8000
+Date: Mon, 16 Dec 2024 17:22:45 GMT
+Content-Length: 0
+----
+
+===== DELETE request to delete a file
+
+[source, HTTP]
+.HTTP DELETE /files/{file_id} request
+----
+DELETE /files/40 HTTP/1.1
+Host: 0.0.0.0:8070
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://0.0.0.0:8000/
+Origin: http://0.0.0.0:8000
+Connection: keep-alive
+Cookie: session=MTczNDM2ODc2NHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fABUsoDAXSwtYR0bwg9496lirdXpmqgHZ8KqJUkA3Zur
+Priority: u=0
+----
+
+[source, HTTP]
+.HTTP DELETE /files/{file_id} response
+----
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Origin: http://0.0.0.0:8000
+Date: Mon, 16 Dec 2024 17:22:45 GMT
+Content-Length: 0
+----
 
 ==== Expected behaviour
 
-DELETE request is protected from CSRF attacks.
+Options request returns `405 Method not allowed` status code if the state changing requests are being run from different origin (http://0.0.0.0:8000) from the host (http://0.0.0.0:8070) and DELETE request will not be run.
+
+[source, HTTP]
+.HTTP OPTIONS /files/{file_id} response
+----
+HTTP/1.1 405 Method Not Allowed
+Date: Mon, 16 Dec 2024 14:13:24 GMT
+Content-Length: 0
+----
 
 ==== Result(s)
 
-DELETE request is protected from CSRF attacks.
+GET, POST, PUT and DELETE methods are vulnerable to CSRF attacks.
 
 ==== Explanation
 
-When doing CORS requests, server makes preflight request to check if the request is allowed. If the request is not allowed, the server will respond with 405 Method Not Allowed.
+When doing CORS requests, server makes preflight OPTIONS request to check if the request is allowed. If the request is not allowed, the server will respond to the OPTIONS request with `405 Method Not Allowed`. 
 
 ==== Threat analysis
 
-N/A
+Malicios actor can perform CSRF attacks to a logged in user by sending a DELETE, POST, PUT or GET request to the server.
+
+This results in the following actions:
+. Delete any file from the user's account.
+. Upload new files to the user's account.
+. Download any file from the user's account.
+. View the list of all files uploaded by the user.
 
 ==== Recommendations
 
-. Set `Access-Control-Allow-*` headers explicitly in the code for clarity.
+. Whitelist allowed origins. Do not allow requests from any origin.
+. Obfuscate file ids to prevent CSRF attacks that download or delete files.
 
 === https://asvs.dev/v4.0.3/0x20-V12-Files-Resources/#control-objective[12.1.1] Files
 
