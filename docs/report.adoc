@@ -131,13 +131,17 @@ Cookie: session=MTczMzg1ODc4OXxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01D
 ----
 
 [source, HTTP]
-.HTTP GET /files response
+.HTTP GET /files response headers
 ----
 HTTP/1.1 200 OK
 Date: Tue, 10 Dec 2024 19:45:54 GMT
 Content-Type: text/html; charset=utf-8
 Transfer-Encoding: chunked
- 
+----
+
+[source, HTML]
+.HTML GET /files response 
+----
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -295,7 +299,7 @@ Connection: keep-alive
 Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fDOkN2idNF_fuspPH9w7okbnWlAmEsszTsxMZQHtn2RP
 ----
 
-Request took 30.04 seconds to respond.
+Request took `30.04 seconds` to respond.
 
 
 [source, HTTP]
@@ -356,14 +360,18 @@ Cookie: session=MTczNDM3MzU2MnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01D
 ----
 
 [source, HTTP]
-.HTTP GET /files/{file_id} response
+.HTTP GET /files/{file_id} response headers
 ----
 HTTP/1.1 200 OK
 Content-Disposition: inline; filename="malicious.html"
 Content-Type: text/html
 Date: Mon, 16 Dec 2024 18:29:03 GMT
 Content-Length: 31
+----
 
+[source, HTML]
+.HTML GET /files/{file_id} response
+----
 <script>alert('XSS');</script>
 ----
 
@@ -591,7 +599,7 @@ User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 ----
 
 [source, HTTP]
-.HTTP POST /files response
+.HTTP POST /files response headers
 ----
 HTTP/1.1 200 OK
 Access-Control-Allow-Credentials: true
@@ -601,7 +609,11 @@ Hx-Trigger: file-uploaded
 Date: Mon, 16 Dec 2024 19:50:44 GMT
 Content-Length: 479
 Content-Type: text/plain; charset=utf-8
- 
+----
+
+[source, HTML]
+.HTML POST /files response 
+----
 <form
     id="upload-form"
     class="form" 
