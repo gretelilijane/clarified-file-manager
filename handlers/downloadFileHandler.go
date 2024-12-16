@@ -40,8 +40,8 @@ func DownloadFileHandler(db *sql.DB, store *sessions.CookieStore) http.HandlerFu
 		}
 
 		// Set response headers
-		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-		//w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", fileName))
+		//w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+		w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", fileName))
 		w.Header().Set("Content-Type", mimeType)
 		w.Write(content)
 	}
