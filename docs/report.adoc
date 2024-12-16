@@ -359,7 +359,7 @@ This threat is especially dangerous together with CSRF attack vulnerability when
 . Set `Content-Disposition: attachment` header to force the browser to download the file instead of displaying it inline.
 . Whitelist allowed MIME types.
 . Discard files with unexpected file content.
-. Set `X-Content-Type-Options: nosniff` header. Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files `test` and `test.txt` as HTML/JavaScript, potentially executing malicious script.
+. Set `X-Content-Type-Options: nosniff` header. Some browsers may perform MIME sniffing and ignore the Content-Type header if the `X-Content-Type-Options: nosniff` header is not set. If nosniff is not set, the browser may sniff the content of the files and treat files with incorrect mime-type/extension as HTML/JavaScript, potentially executing malicious script.
 . Scan file content with antivirus scanner before uploading it to the server.
 
 === REST/API: https://asvs.dev/v4.0.3/0x21-V13-API/#v132-restful-web-service[13.2.3]
